@@ -1,0 +1,9 @@
+# Allow all bots to crawl everything
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://dreamzcollege.in/sitemap.xml
+
+# Host
+Host: https://dreamzcollege.in
