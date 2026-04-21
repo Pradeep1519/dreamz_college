@@ -9,6 +9,7 @@ import { Login } from './Login';
 import { useAuth } from '../../context/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
+import { UniversityDetailModal } from './UniversityDetailModal';
 
 interface NavigationProps {
   activePage: string;
@@ -17,10 +18,102 @@ interface NavigationProps {
 
 // ✅ Admin emails list
 const ADMIN_EMAILS = [
-  'Juniordream2025@gmail.com',        // 🔴 CHANGE KARO - Apna email daalo
+  'Juniordream2025@gmail.com',
   'admin@dreamzcollege.in',
   'juniotdream3021@gmail.com'
 ];
+
+// ✅ Universities Data for Popup
+const universitiesData = {
+  'aktu': {
+    id: 'aktu',
+    name: 'AKTU',
+    fullName: 'Dr. A.P.J. Abdul Kalam Technical University',
+    established: '2000',
+    location: 'Lucknow, Uttar Pradesh',
+    nirfRank: '151-200',
+    type: 'State University',
+    affiliatedColleges: 750,
+    courses: ['B.Tech', 'M.Tech', 'MBA', 'MCA', 'B.Pharm', 'M.Pharm', 'B.Arch', 'BBA', 'BCA'],
+    website: 'https://aktu.ac.in',
+    email: 'info@aktu.ac.in',
+    phone: '+91-522-1234567',
+    description: 'Dr. A.P.J. Abdul Kalam Technical University (AKTU), formerly Uttar Pradesh Technical University (UPTU), is a public university in Lucknow, Uttar Pradesh. It was established in 2000 by the Government of Uttar Pradesh to promote technical education in the state.',
+    achievements: [
+      'Ranked 151-200 in NIRF Engineering Category',
+      'Over 750 affiliated colleges across Uttar Pradesh',
+      'Recognized by UGC and AICTE',
+      'State\'s largest technical university'
+    ],
+    logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4d/Dr._A.P.J._Abdul_Kalam_Technical_University_logo.png/200px-Dr._A.P.J._Abdul_Kalam_Technical_University_logo.png'
+  },
+  'ccsu': {
+    id: 'ccsu',
+    name: 'CCSU',
+    fullName: 'Chaudhary Charan Singh University',
+    established: '1965',
+    location: 'Meerut, Uttar Pradesh',
+    nirfRank: '101-150',
+    type: 'State University',
+    affiliatedColleges: 800,
+    courses: ['BA', 'B.Com', 'B.Sc', 'BBA', 'BCA', 'MA', 'M.Com', 'M.Sc', 'MBA', 'LL.B'],
+    website: 'https://ccsuniversity.ac.in',
+    email: 'info@ccsuniversity.ac.in',
+    phone: '+91-121-1234567',
+    description: 'Chaudhary Charan Singh University (CCSU), formerly Meerut University, is a public university in Meerut, Uttar Pradesh. It was established in 1965 and is named after India\'s former Prime Minister, Chaudhary Charan Singh.',
+    achievements: [
+      'NAAC A+ Grade',
+      'Ranked 101-150 in NIRF University Category',
+      'Over 800 affiliated colleges',
+      'Recognized by UGC'
+    ],
+    logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/3/3c/Chaudhary_Charan_Singh_University_logo.png/200px-Chaudhary_Charan_Singh_University_logo.png'
+  },
+  'ggsipu': {
+    id: 'ggsipu',
+    name: 'GGSIPU',
+    fullName: 'Guru Gobind Singh Indraprastha University',
+    established: '1998',
+    location: 'Delhi',
+    nirfRank: '85',
+    type: 'State University',
+    affiliatedColleges: 120,
+    courses: ['B.Tech', 'MBA', 'BBA', 'BCA', 'B.Com', 'LL.B', 'B.Arch', 'MCA', 'M.Tech', 'M.Com'],
+    website: 'https://ipu.ac.in',
+    email: 'info@ipu.ac.in',
+    phone: '+91-11-12345678',
+    description: 'Guru Gobind Singh Indraprastha University (GGSIPU) is a public university located in Delhi, India. It was established in 1998 and is named after the tenth Sikh Guru, Guru Gobind Singh.',
+    achievements: [
+      'NAAC A+ Grade',
+      'Ranked 85 in NIRF University Category',
+      'Recognized by UGC and AICTE',
+      'One of Delhi\'s premier universities'
+    ],
+    logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/2/2b/Guru_Gobind_Singh_Indraprastha_University_logo.png/200px-Guru_Gobind_Singh_Indraprastha_University_logo.png'
+  },
+  'upbte': {
+    id: 'upbte',
+    name: 'UPBTE',
+    fullName: 'Uttar Pradesh Board of Technical Education',
+    established: '1958',
+    location: 'Lucknow, Uttar Pradesh',
+    nirfRank: 'N/A',
+    type: 'Board',
+    affiliatedColleges: 400,
+    courses: ['Diploma in Engineering', 'Diploma in Pharmacy', 'Diploma in Management', 'Post Diploma Courses'],
+    website: 'https://bteup.ac.in',
+    email: 'info@bteup.ac.in',
+    phone: '+91-522-1234567',
+    description: 'Uttar Pradesh Board of Technical Education (UPBTE) is a board of technical education in Uttar Pradesh, India. It was established in 1958 and is responsible for conducting examinations and providing affiliation to polytechnic institutions in the state.',
+    achievements: [
+      'Over 400 affiliated polytechnic colleges',
+      'Conducts JEECUP examination annually',
+      'Recognized by AICTE',
+      'One of India\'s largest technical boards'
+    ],
+    logo: 'https://bteup.ac.in/images/logo.png'
+  }
+};
 
 const explorePrograms = {
   ugPrograms: [
@@ -46,8 +139,8 @@ const explorePrograms = {
     { label: 'GNM (Nursing)', icon: Heart, path: '/colleges?course=gnm', description: '3.5 Years • Full Time' },
   ],
   otherPrograms: [
-    { label: 'Online Programs', icon: Laptop, path: '/colleges?course=online', description: 'Flexible Learning' },
-    { label: 'Executive Education', icon: Briefcase, path: '/colleges?course=executive', description: 'For Working Professionals' },
+    { label: 'Online Programs', icon: Laptop, path: '/online-programs', description: 'Flexible Learning' },
+    { label: 'Executive Education', icon: Briefcase, path: '/executive-education', description: 'For Working Professionals' },
   ],
 };
 
@@ -92,6 +185,8 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [selectedUniversity, setSelectedUniversity] = useState<any>(null);
+  const [isUniversityModalOpen, setIsUniversityModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   
@@ -186,6 +281,12 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
   };
 
   const isAdmin = user && ADMIN_EMAILS.includes(user.email?.toLowerCase() || '');
+
+  const handleUniversityClick = (key: string) => {
+    setSelectedUniversity(universitiesData[key]);
+    setIsUniversityModalOpen(true);
+    setIsDropdownOpen(false);
+  };
 
   return (
     <>
@@ -415,10 +516,30 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                               Top Universities
                             </h4>
                             <ul className="space-y-1">
-                              <li className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50">AKTU, Lucknow</li>
-                              <li className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50">CCSU, Meerut</li>
-                              <li className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50">GGSIPU, Delhi</li>
-                              <li className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50">UPBTE, Lucknow</li>
+                              <li 
+                                onClick={() => handleUniversityClick('aktu')}
+                                className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50"
+                              >
+                                AKTU, Lucknow
+                              </li>
+                              <li 
+                                onClick={() => handleUniversityClick('ccsu')}
+                                className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50"
+                              >
+                                CCSU, Meerut
+                              </li>
+                              <li 
+                                onClick={() => handleUniversityClick('ggsipu')}
+                                className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50"
+                              >
+                                GGSIPU, Delhi
+                              </li>
+                              <li 
+                                onClick={() => handleUniversityClick('upbte')}
+                                className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50"
+                              >
+                                UPBTE, Lucknow
+                              </li>
                             </ul>
                           </div>
                         </div>
@@ -456,7 +577,6 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                             <p className="text-xs text-gray-500 truncate">{userData?.email || user?.phoneNumber}</p>
                           </div>
                           
-                          {/* ✅ Admin Panel Link - Only for admin */}
                           {isAdmin && (
                             <button
                               onClick={() => {
@@ -541,12 +661,10 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
               >
                 <div className="flex flex-col max-h-[70vh] overflow-y-auto">
                   
-                  {/* Mobile user section */}
                   {user ? (
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">👋 Namaste, {userData?.name?.split(' ')[0]}</p>
                       <div className="flex flex-col gap-2 mt-2">
-                        {/* ✅ Admin Panel Link in Mobile Menu */}
                         {isAdmin && (
                           <button
                             onClick={() => { navigate('/admin/dashboard'); setIsMobileMenuOpen(false); }}
@@ -696,6 +814,12 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
         onLoginSuccess={handleLoginSuccess}
+      />
+
+      <UniversityDetailModal
+        isOpen={isUniversityModalOpen}
+        onClose={() => setIsUniversityModalOpen(false)}
+        university={selectedUniversity}
       />
     </>
   );

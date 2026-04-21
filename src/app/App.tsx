@@ -51,6 +51,10 @@ import { AdminLogin } from '../admin/AdminLogin';
 import { AdminDashboard } from '../admin/AdminDashboard';
 import { AdminRoute } from '../admin/AdminRoute';
 
+// ========== NEW PAGE IMPORTS ==========
+import { OnlineProgramsPage } from './pages/OnlineProgramsPage';
+import { ExecutiveEducationPage } from './pages/ExecutiveEducationPage';
+
 // Import all college pages
 import { AccurateInstitutePage } from './pages/colleges/AccurateInstitutePage';
 import { GNGroupPage } from './pages/colleges/GNGroupPage';
@@ -118,78 +122,49 @@ function AppContent() {
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   
-  // ✅ Login Popup State
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   
   const { isOpen: isPopupOpen, closePopup, markAsSubmitted } = usePopupTimer(40);
 
-  // Track page views
   useEffect(() => {
     trackPageView(location.pathname);
   }, [location]);
 
-  // SCROLL TO TOP ON ACTIVE PAGE CHANGE
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activePage]);
 
-  // Update active page based on path
   useEffect(() => {
     const path = location.pathname;
     
-    if (path === '/') {
-      setActivePage('Home');
-    } else if (path === '/engineering-colleges') {
-      setActivePage('EngineeringColleges');
-    } else if (path === '/mba-colleges') {
-      setActivePage('MBAColleges');
-    } else if (path === '/medical-colleges') {
-      setActivePage('MedicalColleges');
-    } else if (path === '/nursing-colleges') {
-      setActivePage('NursingColleges');
-    } else if (path === '/pharmacy-colleges') {
-      setActivePage('PharmacyColleges');
-    } else if (path === '/law-colleges') {
-      setActivePage('LawColleges');
-    } else if (path === '/bca-colleges') {
-      setActivePage('BCAColleges');
-    } else if (path === '/bba-colleges') {
-      setActivePage('BBAColleges');
-    } else if (path === '/private-universities') {
-      setActivePage('PrivateUniversities');
-    } else if (path === '/low-fee-colleges') {
-      setActivePage('LowFeeColleges');
-    } else if (path === '/colleges') {
-      setActivePage('Colleges');
-    } else if (path === '/courses') {
-      setActivePage('Courses');
-    } else if (path === '/counseling') {
-      setActivePage('Counseling');
-    } else if (path === '/contact') {
-      setActivePage('Contact');
-    } else if (path === '/about') {
-      setActivePage('About');
-    } else if (path === '/career') {
-      setActivePage('Career');
-    } else if (path === '/exams') {
-      setActivePage('Exams');
-    } else if (path === '/privacy-policy') {
-      setActivePage('PrivacyPolicy');
-    } else if (path === '/terms-of-service') {
-      setActivePage('TermsOfService');
-    } else if (path === '/blog') {
-      setActivePage('Blog');
-    } else if (path.startsWith('/blog/')) {
-      setActivePage('BlogDetail');
-    } else if (path.startsWith('/college/')) {
-      setActivePage('CollegeDetails');
-    } else if (path.startsWith('/exam/')) {
-      setActivePage('ExamDetails');
-    } else if (path.startsWith('/career/')) {
-      setActivePage('JobDetails');
-    } else if (path === '/dashboard') {
-      setActivePage('Dashboard');
-    }
+    if (path === '/') setActivePage('Home');
+    else if (path === '/engineering-colleges') setActivePage('EngineeringColleges');
+    else if (path === '/mba-colleges') setActivePage('MBAColleges');
+    else if (path === '/medical-colleges') setActivePage('MedicalColleges');
+    else if (path === '/nursing-colleges') setActivePage('NursingColleges');
+    else if (path === '/pharmacy-colleges') setActivePage('PharmacyColleges');
+    else if (path === '/law-colleges') setActivePage('LawColleges');
+    else if (path === '/bca-colleges') setActivePage('BCAColleges');
+    else if (path === '/bba-colleges') setActivePage('BBAColleges');
+    else if (path === '/private-universities') setActivePage('PrivateUniversities');
+    else if (path === '/low-fee-colleges') setActivePage('LowFeeColleges');
+    else if (path === '/colleges') setActivePage('Colleges');
+    else if (path === '/courses') setActivePage('Courses');
+    else if (path === '/counseling') setActivePage('Counseling');
+    else if (path === '/contact') setActivePage('Contact');
+    else if (path === '/about') setActivePage('About');
+    else if (path === '/career') setActivePage('Career');
+    else if (path === '/exams') setActivePage('Exams');
+    else if (path === '/privacy-policy') setActivePage('PrivacyPolicy');
+    else if (path === '/terms-of-service') setActivePage('TermsOfService');
+    else if (path === '/blog') setActivePage('Blog');
+    else if (path.startsWith('/blog/')) setActivePage('BlogDetail');
+    else if (path.startsWith('/college/')) setActivePage('CollegeDetails');
+    else if (path.startsWith('/exam/')) setActivePage('ExamDetails');
+    else if (path.startsWith('/career/')) setActivePage('JobDetails');
+    else if (path === '/dashboard') setActivePage('Dashboard');
+    else if (path === '/online-programs') setActivePage('OnlinePrograms');
+    else if (path === '/executive-education') setActivePage('ExecutiveEducation');
   }, [location]);
 
   const handleBookCounseling = () => {
@@ -214,195 +189,70 @@ function AppContent() {
     navigate(`/blog/${slug}`);
   };
 
-  // ✅ Login Success Handler
   const handleLoginSuccess = () => {
     console.log('User logged in successfully');
-    // Optional: Refresh user state or redirect
   };
 
   const renderContent = () => {
     switch (activePage) {
       case 'About':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <AboutPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><AboutPage /></div></div>;
       case 'Courses':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <CoursesPage 
-                preSelectedCourse={selectedCourse}
-                onBookCounseling={handleBookCounseling}
-              />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><CoursesPage preSelectedCourse={selectedCourse} onBookCounseling={handleBookCounseling} /></div></div>;
       case 'Colleges':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <CollegesPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><CollegesPage /></div></div>;
       case 'EngineeringColleges':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <EngineeringCollegesPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><EngineeringCollegesPage /></div></div>;
       case 'MBAColleges':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <MBACollegesPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><MBACollegesPage /></div></div>;
       case 'MedicalColleges':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <MedicalCollegesPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><MedicalCollegesPage /></div></div>;
       case 'NursingColleges':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <NursingCollegesPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><NursingCollegesPage /></div></div>;
       case 'PharmacyColleges':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <PharmacyCollegesPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><PharmacyCollegesPage /></div></div>;
       case 'LawColleges':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <LawCollegesPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><LawCollegesPage /></div></div>;
       case 'BCAColleges':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <BCACollegesPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><BCACollegesPage /></div></div>;
       case 'BBAColleges':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <BBACollegesPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><BBACollegesPage /></div></div>;
       case 'PrivateUniversities':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <PrivateUniversitiesPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><PrivateUniversitiesPage /></div></div>;
       case 'LowFeeColleges':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <LowFeeCollegesPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><LowFeeCollegesPage /></div></div>;
       case 'Career':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <CareerPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><CareerPage /></div></div>;
       case 'Exams':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <ExamPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><ExamPage /></div></div>;
       case 'Blog':
-        return (
-          <div className="pt-20">
-            <BlogListPage onNavigateToBlogDetail={handleNavigateToBlogDetail} />
-          </div>
-        );
+        return <div className="pt-20"><BlogListPage onNavigateToBlogDetail={handleNavigateToBlogDetail} /></div>;
       case 'BlogDetail':
         return null;
       case 'Dashboard':
-        return (
-          <div className="pt-20">
-            <UserDashboard />
-          </div>
-        );
+        return <div className="pt-20"><UserDashboard /></div>;
+      case 'OnlinePrograms':
+        return <OnlineProgramsPage />;
+      case 'ExecutiveEducation':
+        return <ExecutiveEducationPage />;
       case 'CollegeDetails':
       case 'ExamDetails':
       case 'JobDetails':
         return null;
       case 'Counseling':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <CounselingPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><CounselingPage /></div></div>;
       case 'Contact':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <ContactPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><ContactPage /></div></div>;
       case 'PrivacyPolicy':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <PrivacyPolicyPage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><PrivacyPolicyPage /></div></div>;
       case 'TermsOfService':
-        return (
-          <div className="pt-20">
-            <div className="max-w-7xl mx-auto px-6 py-16">
-              <TermsOfServicePage />
-            </div>
-          </div>
-        );
+        return <div className="pt-20"><div className="max-w-7xl mx-auto px-6 py-16"><TermsOfServicePage /></div></div>;
       default:
         return (
           <>
             <HeroSection />
             <CoursesSection 
-              onCourseClick={(courseTitle) => {
-                setSelectedCourse(courseTitle);
-              }}
+              onCourseClick={(courseTitle) => setSelectedCourse(courseTitle)}
               onNavigateToCourses={() => {
                 setActivePage('Courses');
                 navigate('/courses');
@@ -440,6 +290,8 @@ function AppContent() {
           else if (page === 'About') navigate('/about');
           else if (page === 'Blog') navigate('/blog');
           else if (page === 'Dashboard') navigate('/dashboard');
+          else if (page === 'OnlinePrograms') navigate('/online-programs');
+          else if (page === 'ExecutiveEducation') navigate('/executive-education');
         }} 
         onBookCounseling={handleBookCounseling}
         onSignIn={() => setIsLoginOpen(true)}
@@ -469,6 +321,8 @@ function AppContent() {
         else if (page === 'About') navigate('/about');
         else if (page === 'Blog') navigate('/blog');
         else if (page === 'Dashboard') navigate('/dashboard');
+        else if (page === 'OnlinePrograms') navigate('/online-programs');
+        else if (page === 'ExecutiveEducation') navigate('/executive-education');
       }} />
 
       <BookingModal
@@ -477,7 +331,6 @@ function AppContent() {
         onBookingComplete={handleBookingComplete}
       />
 
-      {/* ✅ Login Popup Modal */}
       <Login 
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
@@ -498,15 +351,17 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            {/* New Course Form & Dashboard Routes */}
             <Route path="/course/:courseSlug/:courseName" element={<PageWrapper><CourseFormPage /></PageWrapper>} />
             <Route path="/dashboard" element={<PageWrapper><UserDashboard /></PageWrapper>} />
             
-            {/* Blog Routes */}
             <Route path="/blog" element={<PageWrapper><BlogListPage onNavigateToBlogDetail={(slug) => window.location.href = `/blog/${slug}`} /></PageWrapper>} />
             <Route path="/blog/:slug" element={<PageWrapper><BlogDetailPage /></PageWrapper>} />
             
-            {/* College Detail Routes - Keep for backward compatibility */}
+            {/* New Routes */}
+            <Route path="/online-programs" element={<PageWrapper><OnlineProgramsPage /></PageWrapper>} />
+            <Route path="/executive-education" element={<PageWrapper><ExecutiveEducationPage /></PageWrapper>} />
+            
+            {/* College Detail Routes */}
             <Route path="/college/accurate-institute" element={<PageWrapper><AccurateInstitutePage /></PageWrapper>} />
             <Route path="/college/gn-group" element={<PageWrapper><GNGroupPage /></PageWrapper>} />
             <Route path="/college/mangalmay" element={<PageWrapper><MangalmayPage /></PageWrapper>} />
@@ -554,10 +409,8 @@ export default function App() {
             <Route path="/private-universities" element={<PageWrapper><PrivateUniversitiesPage /></PageWrapper>} />
             <Route path="/low-fee-colleges" element={<PageWrapper><LowFeeCollegesPage /></PageWrapper>} />
             
-            {/* ✅ Login route */}
             <Route path="/login" element={<PageWrapper><Login isOpen={true} onClose={() => window.history.back()} /></PageWrapper>} />
 
-            {/* ✅ Admin Routes - With Route Protection */}
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route 
               path="/admin/dashboard" 
