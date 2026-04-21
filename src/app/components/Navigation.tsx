@@ -1,9 +1,11 @@
+// src/app/components/Navigation.tsx
+
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'motion/react';
-import { Phone, Menu, X, ChevronDown, GraduationCap, Briefcase, Microscope, Scale, Heart, Laptop, Search, ChevronRight, Sparkles, Trophy, Target, Zap, User, LogOut } from 'lucide-react';
+import { Phone, Menu, X, ChevronDown, GraduationCap, Briefcase, Microscope, Scale, Heart, Laptop, Search, ChevronRight, Sparkles, Trophy, Target, Zap, User, LogOut, Shield } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BookingModal } from './BookingModal';
-import { Login } from './Login';  // ✅ Import Login Modal
+import { Login } from './Login';
 import { useAuth } from '../../context/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
@@ -12,6 +14,13 @@ interface NavigationProps {
   activePage: string;
   onPageChange: (page: string) => void;
 }
+
+// ✅ Admin emails list
+const ADMIN_EMAILS = [
+  'Juniordream2025@gmail.com',        // 🔴 CHANGE KARO - Apna email daalo
+  'admin@dreamzcollege.in',
+  'juniotdream3021@gmail.com'
+];
 
 const explorePrograms = {
   ugPrograms: [
@@ -82,7 +91,7 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);  // ✅ Login Modal State
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   
@@ -168,16 +177,15 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
     }
   };
 
-  // ✅ Updated: Open Login Popup instead of navigating
   const handleSignIn = () => {
     setIsLoginOpen(true);
   };
 
-  // ✅ Login Success Handler
   const handleLoginSuccess = () => {
     console.log('User logged in successfully');
-    // Optionally refresh user data or show toast
   };
+
+  const isAdmin = user && ADMIN_EMAILS.includes(user.email?.toLowerCase() || '');
 
   return (
     <>
@@ -441,12 +449,27 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
-                          className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50"
+                          className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50"
                         >
                           <div className="px-4 py-3 border-b border-gray-100">
                             <p className="text-sm font-medium text-gray-900">{userData?.name || 'User'}</p>
                             <p className="text-xs text-gray-500 truncate">{userData?.email || user?.phoneNumber}</p>
                           </div>
+                          
+                          {/* ✅ Admin Panel Link - Only for admin */}
+                          {isAdmin && (
+                            <button
+                              onClick={() => {
+                                navigate('/admin/dashboard');
+                                setShowUserMenu(false);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 flex items-center gap-2 border-b border-gray-100"
+                            >
+                              <Shield className="w-4 h-4" />
+                              Admin Panel
+                            </button>
+                          )}
+                          
                           <button
                             onClick={() => {
                               navigate('/dashboard');
@@ -522,9 +545,21 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                   {user ? (
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">👋 Namaste, {userData?.name?.split(' ')[0]}</p>
-                      <div className="flex gap-2 mt-2">
-                        <button onClick={() => { navigate('/dashboard'); setIsMobileMenuOpen(false); }} className="flex-1 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm">Dashboard</button>
-                        <button onClick={handleLogout} className="flex-1 py-2 bg-red-100 text-red-700 rounded-lg text-sm">Sign Out</button>
+                      <div className="flex flex-col gap-2 mt-2">
+                        {/* ✅ Admin Panel Link in Mobile Menu */}
+                        {isAdmin && (
+                          <button
+                            onClick={() => { navigate('/admin/dashboard'); setIsMobileMenuOpen(false); }}
+                            className="w-full py-2 bg-purple-100 text-purple-700 rounded-lg text-sm flex items-center justify-center gap-2"
+                          >
+                            <Shield className="w-4 h-4" />
+                            Admin Panel
+                          </button>
+                        )}
+                        <div className="flex gap-2">
+                          <button onClick={() => { navigate('/dashboard'); setIsMobileMenuOpen(false); }} className="flex-1 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm">Dashboard</button>
+                          <button onClick={handleLogout} className="flex-1 py-2 bg-red-100 text-red-700 rounded-lg text-sm">Sign Out</button>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -657,7 +692,6 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
         onBookingComplete={handleBookingComplete}
       />
 
-      {/* ✅ Login Popup Modal */}
       <Login
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}

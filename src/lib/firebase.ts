@@ -3,8 +3,9 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
 import { getFirestore, collection, addDoc, query, where, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';  // ✅ NEW - Storage ke liye
 
-// Tumhara Firebase Config - JO TUNE COPY KIYA HAI
+// Tumhara Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAklxGh5b93k50GL9wQnZVK1n4_lRr4Cl4",
   authDomain: "dreamz-college.firebaseapp.com",
@@ -21,6 +22,7 @@ const app = initializeApp(firebaseConfig);
 // Export instances
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app);  // ✅ NEW - Storage instance export
 
 // Helper: Check if user already submitted for a course
 export const hasUserSubmittedForCourse = async (phoneNumber: string, courseSlug: string) => {

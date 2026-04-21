@@ -1,3 +1,5 @@
+// src/app/App.tsx
+
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
@@ -43,6 +45,11 @@ import { BlogDetailPage } from './components/blog/BlogDetailPage';
 import { AuthProvider } from '../context/AuthContext';
 import { CourseFormPage } from './components/CourseFormPage';
 import { UserDashboard } from './components/UserDashboard';
+
+// ========== ADMIN IMPORTS ==========
+import { AdminLogin } from '../admin/AdminLogin';
+import { AdminDashboard } from '../admin/AdminDashboard';
+import { AdminRoute } from '../admin/AdminRoute';
 
 // Import all college pages
 import { AccurateInstitutePage } from './pages/colleges/AccurateInstitutePage';
@@ -435,7 +442,7 @@ function AppContent() {
           else if (page === 'Dashboard') navigate('/dashboard');
         }} 
         onBookCounseling={handleBookCounseling}
-        onSignIn={() => setIsLoginOpen(true)}  // ✅ NEW: Pass signin handler to Navigation
+        onSignIn={() => setIsLoginOpen(true)}
       />
 
       <AnimatePresence mode="wait">
@@ -470,7 +477,7 @@ function AppContent() {
         onBookingComplete={handleBookingComplete}
       />
 
-      {/* ✅ Login Popup Modal - Blur Background wala */}
+      {/* ✅ Login Popup Modal */}
       <Login 
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
@@ -499,7 +506,7 @@ export default function App() {
             <Route path="/blog" element={<PageWrapper><BlogListPage onNavigateToBlogDetail={(slug) => window.location.href = `/blog/${slug}`} /></PageWrapper>} />
             <Route path="/blog/:slug" element={<PageWrapper><BlogDetailPage /></PageWrapper>} />
             
-            {/* College Detail Routes */}
+            {/* College Detail Routes - Keep for backward compatibility */}
             <Route path="/college/accurate-institute" element={<PageWrapper><AccurateInstitutePage /></PageWrapper>} />
             <Route path="/college/gn-group" element={<PageWrapper><GNGroupPage /></PageWrapper>} />
             <Route path="/college/mangalmay" element={<PageWrapper><MangalmayPage /></PageWrapper>} />
@@ -547,8 +554,19 @@ export default function App() {
             <Route path="/private-universities" element={<PageWrapper><PrivateUniversitiesPage /></PageWrapper>} />
             <Route path="/low-fee-colleges" element={<PageWrapper><LowFeeCollegesPage /></PageWrapper>} />
             
-            {/* ✅ Login route bhi rakha hai (agar direct URL se koi aaye) */}
+            {/* ✅ Login route */}
             <Route path="/login" element={<PageWrapper><Login isOpen={true} onClose={() => window.history.back()} /></PageWrapper>} />
+
+            {/* ✅ Admin Routes - With Route Protection */}
+            <Route path="/admin-login" element={<AdminLogin />} />
+            <Route 
+              path="/admin/dashboard" 
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              } 
+            />
 
             <Route path="/*" element={<AppContent />} />
           </Routes>
