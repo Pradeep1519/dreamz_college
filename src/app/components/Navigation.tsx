@@ -45,7 +45,7 @@ const universitiesData = {
       'Recognized by UGC and AICTE',
       'State\'s largest technical university'
     ],
-    logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/4/4d/Dr._A.P.J._Abdul_Kalam_Technical_University_logo.png/200px-Dr._A.P.J._Abdul_Kalam_Technical_University_logo.png'
+    logo: './university/aktu.png'
   },
   'ccsu': {
     id: 'ccsu',
@@ -67,7 +67,7 @@ const universitiesData = {
       'Over 800 affiliated colleges',
       'Recognized by UGC'
     ],
-    logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/3/3c/Chaudhary_Charan_Singh_University_logo.png/200px-Chaudhary_Charan_Singh_University_logo.png'
+    logo: './university/ccsu.png'
   },
   'ggsipu': {
     id: 'ggsipu',
@@ -89,7 +89,7 @@ const universitiesData = {
       'Recognized by UGC and AICTE',
       'One of Delhi\'s premier universities'
     ],
-    logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/2/2b/Guru_Gobind_Singh_Indraprastha_University_logo.png/200px-Guru_Gobind_Singh_Indraprastha_University_logo.png'
+    logo: './university/GGSIU_logo.png'
   },
   'upbte': {
     id: 'upbte',
@@ -111,7 +111,7 @@ const universitiesData = {
       'Recognized by AICTE',
       'One of India\'s largest technical boards'
     ],
-    logo: 'https://bteup.ac.in/images/logo.png'
+    logo: './university/upbte.jpg'
   }
 };
 
