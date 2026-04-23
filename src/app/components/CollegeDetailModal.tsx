@@ -1,10 +1,13 @@
 // src/app/components/CollegeDetailModal.tsx
 
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Star, Users, Award, CheckCircle, Phone, MessageCircle, Rocket, BookOpen, Briefcase, Building, GraduationCap, MapPin, Calendar, TrendingUp, Shield, ChevronRight, Download } from 'lucide-react';
-import { useState } from 'react';
+import { X, Star, Users, Award, CheckCircle, Phone, MessageCircle, Rocket, BookOpen, Briefcase, Building, GraduationCap, MapPin, Calendar, TrendingUp, Shield, ChevronRight, Download, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { CourseDetailModal } from './CourseDetailModal';
+import { ApplicationPopup } from './ApplicationPopup';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 
 interface CollegeDetailModalProps {
   isOpen: boolean;
@@ -344,15 +347,54 @@ const mangalmayCoursesData: Record<string, any> = {
 export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailModalProps) {
   const { user, userData } = useAuth();
   const [activeTab, setActiveTab] = useState('about');
-  const [showEnquiryForm, setShowEnquiryForm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [enquiryData, setEnquiryData] = useState({ name: '', phone: '', email: '', course: '', message: '' });
-  
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
+  const [isApplicationPopupOpen, setIsApplicationPopupOpen] = useState(false);
+  const [appliedCoursesList, setAppliedCoursesList] = useState<string[]>([]);
+  const [showAlreadyAppliedToast, setShowAlreadyAppliedToast] = useState(false);
+  const [loadingApplied, setLoadingApplied] = useState(false);
 
   const userName = userData?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Guest';
   const isMangalmay = college?.name?.includes('Mangalmay');
+
+  // Fetch applied courses for this college
+  const fetchAppliedCourses = async () => {
+    if (!user?.uid || !college?.id) return;
+    
+    setLoadingApplied(true);
+    try {
+      const inquiriesRef = collection(db, 'inquiries');
+      const q = query(
+        inquiriesRef,
+        where('userId', '==', user.uid),
+        where('collegeId', '==', college.id)
+      );
+      const querySnapshot = await getDocs(q);
+      const courses = querySnapshot.docs.map(doc => doc.data().course);
+      setAppliedCoursesList(courses);
+    } catch (err) {
+      console.error('Error fetching applied courses:', err);
+    } finally {
+      setLoadingApplied(false);
+    }
+  };
+
+  // Auto-hide toast after 2 seconds
+  useEffect(() => {
+    if (showAlreadyAppliedToast) {
+      const timer = setTimeout(() => {
+        setShowAlreadyAppliedToast(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showAlreadyAppliedToast]);
+
+  // Call when modal opens
+  useEffect(() => {
+    if (isOpen && user?.uid && college?.id) {
+      fetchAppliedCourses();
+    }
+  }, [isOpen, user?.uid, college?.id]);
 
   if (!isOpen || !college) return null;
 
@@ -374,6 +416,10 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
     }
   };
 
+  const handleApplyNow = () => {
+    setIsApplicationPopupOpen(true);
+  };
+
   const handleChatWithExpert = () => {
     const message = `👋 Hello! I'm interested in ${college.name}. Can you guide me about admission process?`;
     window.open(`https://wa.me/918796033021?text=${encodeURIComponent(message)}`, '_blank');
@@ -389,17 +435,25 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
     document.body.removeChild(link);
   };
 
-  const handleEnquirySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setShowEnquiryForm(false);
-      alert('Application submitted successfully! We will contact you soon.');
-    }, 1000);
+  const getCoursesList = () => {
+    if (isMangalmay) {
+      return [
+        'B.Tech Advance',
+        'B.Tech CSE (AI/CS/DS)',
+        'MBA (IIM Certification)',
+        'MBA',
+        'BBA (PLATINA)',
+        'BBA',
+        'BCA',
+        'B.Com',
+        'B.A.B.Ed'
+      ];
+    }
+    return [
+      'B.Tech', 'B.Tech (GGSIPU)', 'B.Tech (LEET)', 'MBA', 'PGDM', 'BBA', 'BCA', 'B.Com', 'B.Pharm', 'D.Pharm', 'LL.B'
+    ];
   };
 
-  // Fee structure display for Mangalmay
   const renderFeeStructure = () => {
     if (isMangalmay) {
       return (
@@ -507,7 +561,6 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
       );
     }
     
-    // GN Group fee structure
     return (
       <div className="space-y-3">
         <div className="bg-green-50 rounded-lg p-3">
@@ -540,6 +593,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
           <div className="flex justify-between items-center">
             <span className="text-gray-700">MBA - Per Year</span>
             <span className="font-bold text-purple-600">₹1,79,400</span>
+            <div className="text-xs text-green-600 mt-1">(IIM Certified Available)</div>
           </div>
           <div className="flex justify-between items-center mt-1 text-sm">
             <span className="text-gray-500">Total (2 Years)</span>
@@ -603,26 +657,6 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
     );
   };
 
-  // Get courses list based on college
-  const getCoursesList = () => {
-    if (isMangalmay) {
-      return [
-        'B.Tech Advance',
-        'B.Tech CSE (AI/CS/DS)',
-        'MBA (IIM Certification)',
-        'MBA',
-        'BBA (PLATINA)',
-        'BBA',
-        'BCA',
-        'B.Com',
-        'B.A.B.Ed'
-      ];
-    }
-    return [
-      'B.Tech', 'B.Tech (GGSIPU)', 'B.Tech (LEET)', 'MBA', 'PGDM', 'BBA', 'BCA', 'B.Com', 'B.Pharm', 'D.Pharm', 'LL.B'
-    ];
-  };
-
   return (
     <>
       <AnimatePresence>
@@ -651,6 +685,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
               </button>
 
               <div className="clear-both px-6 pb-6 pt-2">
+                {/* Greeting */}
                 <div className="mb-6">
                   <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-100">
                     <div className="flex items-center gap-2 mb-2">
@@ -665,6 +700,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                   </div>
                 </div>
 
+                {/* College Name & Rating */}
                 <div className="mb-6">
                   <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{college.name}</h1>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -681,6 +717,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                   </div>
                 </div>
 
+                {/* Action Buttons */}
                 <div className="flex flex-wrap gap-3 mb-6">
                   <button
                     onClick={handleDownloadBrochure}
@@ -691,6 +728,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                   </button>
                 </div>
 
+                {/* Tabs */}
                 <div className="border-b border-gray-200 mb-6">
                   <div className="flex overflow-x-auto gap-1">
                     {['about', 'courses', 'fees', 'placement', 'facilities'].map((tab) => (
@@ -713,6 +751,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                   </div>
                 </div>
 
+                {/* Tab Content */}
                 <div className="mb-6">
                   {activeTab === 'about' && (
                     <div className="space-y-4">
@@ -809,6 +848,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                   )}
                 </div>
 
+                {/* Stats & Apply Section - WITH ALREADY APPLIED BUTTON */}
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 mb-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -833,13 +873,28 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                       <span className="text-xs text-gray-400">* One Time Payment</span>
                     </div>
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => setShowEnquiryForm(true)}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all"
-                      >
-                        <Rocket className="w-4 h-4" />
-                        Apply Now
-                      </button>
+                      {loadingApplied ? (
+                        <button className="flex items-center gap-2 px-5 py-2.5 bg-gray-400 text-white rounded-lg font-semibold text-sm">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Loading...
+                        </button>
+                      ) : appliedCoursesList.length > 0 ? (
+                        <button
+                          onClick={() => setShowAlreadyAppliedToast(true)}
+                          className="flex items-center gap-2 px-5 py-2.5 bg-gray-400 text-white rounded-lg font-semibold text-sm cursor-not-allowed"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          Already Applied
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleApplyNow}
+                          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all"
+                        >
+                          <Rocket className="w-4 h-4" />
+                          Apply Now
+                        </button>
+                      )}
                       <button
                         onClick={handleChatWithExpert}
                         className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all"
@@ -851,6 +906,23 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                   </div>
                 </div>
 
+                {/* Already Applied Toast Message - Auto hides after 2 seconds */}
+                <AnimatePresence>
+                  {showAlreadyAppliedToast && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 50 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 50 }}
+                      transition={{ duration: 0.3 }}
+                      className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[200] bg-amber-500 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2"
+                    >
+                      <AlertCircle className="w-5 h-5" />
+                      <span>You have already applied for a course in this college</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Accreditation Badges */}
                 <div className="flex flex-wrap gap-2 justify-center">
                   {(college.accreditation || ['AICTE', 'NBA', 'NAAC A+']).map((badge: string, idx: number) => (
                     <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
@@ -864,6 +936,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
         )}
       </AnimatePresence>
 
+      {/* Course Detail Modal */}
       <CourseDetailModal
         isOpen={isCourseModalOpen}
         onClose={() => setIsCourseModalOpen(false)}
@@ -872,83 +945,20 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
         collegeName={college?.name}
       />
 
-      <AnimatePresence>
-        {showEnquiryForm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-            onClick={() => setShowEnquiryForm(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 20 }}
-              className="bg-white rounded-2xl max-w-md w-full p-6"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-gray-900">Apply to {college.name}</h3>
-                <button onClick={() => setShowEnquiryForm(false)} className="text-gray-400 hover:text-gray-600">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <form onSubmit={handleEnquirySubmit} className="space-y-4">
-                <input
-                  type="text"
-                  placeholder="Full Name *"
-                  required
-                  value={enquiryData.name}
-                  onChange={(e) => setEnquiryData({...enquiryData, name: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <input
-                  type="tel"
-                  placeholder="Phone Number *"
-                  required
-                  value={enquiryData.phone}
-                  onChange={(e) => setEnquiryData({...enquiryData, phone: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <input
-                  type="email"
-                  placeholder="Email *"
-                  required
-                  value={enquiryData.email}
-                  onChange={(e) => setEnquiryData({...enquiryData, email: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <select
-                  required
-                  value={enquiryData.course}
-                  onChange={(e) => setEnquiryData({...enquiryData, course: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">Select Course *</option>
-                  {getCoursesList().map((course: string, idx: number) => (
-                    <option key={idx} value={course}>{course}</option>
-                  ))}
-                </select>
-                <textarea
-                  placeholder="Message (Optional)"
-                  rows={3}
-                  value={enquiryData.message}
-                  onChange={(e) => setEnquiryData({...enquiryData, message: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit Application'}
-                </button>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Application Popup */}
+      <ApplicationPopup
+        isOpen={isApplicationPopupOpen}
+        onClose={() => setIsApplicationPopupOpen(false)}
+        college={{
+          id: college.id,
+          name: college.name,
+          courses: getCoursesList()
+        }}
+        onSuccess={() => {
+          // Refresh applied courses after successful application
+          fetchAppliedCourses();
+        }}
+      />
     </>
   );
 }
