@@ -2,7 +2,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
-import { getFirestore, collection, addDoc, query, where, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, query, where, getDocs, doc, setDoc, getDoc, deleteDoc, orderBy } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // Firebase Config
@@ -26,7 +26,6 @@ export const storage = getStorage(app);
 
 // ========== USER HELPERS ==========
 
-// Save or update user
 export const saveUser = async (userId: string, userData: any) => {
   const userRef = doc(db, 'users', userId);
   return await setDoc(userRef, {
@@ -36,14 +35,12 @@ export const saveUser = async (userId: string, userData: any) => {
   }, { merge: true });
 };
 
-// Get user by ID
 export const getUserById = async (userId: string) => {
   const userRef = doc(db, 'users', userId);
   const userSnap = await getDoc(userRef);
   return userSnap.exists() ? userSnap.data() : null;
 };
 
-// Get user by phone
 export const getUserByPhone = async (phoneNumber: string) => {
   const usersRef = collection(db, 'users');
   const q = query(usersRef, where('phone', '==', phoneNumber));
@@ -53,7 +50,6 @@ export const getUserByPhone = async (phoneNumber: string) => {
 
 // ========== INQUIRY/APPLICATION HELPERS ==========
 
-// Check if user already submitted for a course (by phone - old method)
 export const hasUserSubmittedForCourse = async (phoneNumber: string, courseSlug: string) => {
   const inquiriesRef = collection(db, 'inquiries');
   const q = query(inquiriesRef, where('phoneNumber', '==', phoneNumber), where('courseSlug', '==', courseSlug));
@@ -61,7 +57,6 @@ export const hasUserSubmittedForCourse = async (phoneNumber: string, courseSlug:
   return !querySnapshot.empty;
 };
 
-// ✅ NEW: Check if user already applied for a specific course in a college (by userId)
 export const hasUserAppliedForCourse = async (userId: string, collegeId: string, courseName: string) => {
   const inquiriesRef = collection(db, 'inquiries');
   const q = query(
@@ -74,7 +69,6 @@ export const hasUserAppliedForCourse = async (userId: string, collegeId: string,
   return !querySnapshot.empty;
 };
 
-// ✅ NEW: Get user's applied courses for a college
 export const getUserAppliedCourses = async (userId: string, collegeId: string) => {
   const inquiriesRef = collection(db, 'inquiries');
   const q = query(
@@ -86,7 +80,6 @@ export const getUserAppliedCourses = async (userId: string, collegeId: string) =
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-// Save inquiry (basic - old method)
 export const saveInquiry = async (data: any) => {
   const inquiriesRef = collection(db, 'inquiries');
   return await addDoc(inquiriesRef, {
@@ -96,7 +89,6 @@ export const saveInquiry = async (data: any) => {
   });
 };
 
-// ✅ NEW: Save full application (with all academic details)
 export const saveFullApplication = async (data: any) => {
   const inquiriesRef = collection(db, 'inquiries');
   return await addDoc(inquiriesRef, {
@@ -107,7 +99,6 @@ export const saveFullApplication = async (data: any) => {
   });
 };
 
-// Get user's all inquiries (by phone - old method)
 export const getUserInquiries = async (phoneNumber: string) => {
   const inquiriesRef = collection(db, 'inquiries');
   const q = query(inquiriesRef, where('phoneNumber', '==', phoneNumber));
@@ -115,23 +106,68 @@ export const getUserInquiries = async (phoneNumber: string) => {
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-// ✅ NEW: Get user's all applications by userId
 export const getUserApplications = async (userId: string) => {
   const inquiriesRef = collection(db, 'inquiries');
-  const q = query(inquiriesRef, where('userId', '==', userId));
+  const q = query(inquiriesRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-// Get all inquiries (for admin)
 export const getAllInquiries = async () => {
   const inquiriesRef = collection(db, 'inquiries');
   const querySnapshot = await getDocs(inquiriesRef);
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-// Update inquiry status (for admin)
 export const updateInquiryStatus = async (inquiryId: string, status: string) => {
   const inquiryRef = doc(db, 'inquiries', inquiryId);
   return await setDoc(inquiryRef, { status, updatedAt: new Date().toISOString() }, { merge: true });
+};
+
+// ========== ✅ NEW: SAVED COLLEGES HELPERS ==========
+
+// Save college for user
+export const saveCollege = async (userId: string, collegeData: any) => {
+  const savedRef = collection(db, 'saved_colleges');
+  const q = query(savedRef, where('userId', '==', userId), where('collegeId', '==', collegeData.collegeId));
+  const existing = await getDocs(q);
+  
+  if (!existing.empty) {
+    return { success: false, message: 'Already saved' };
+  }
+  
+  await addDoc(savedRef, {
+    userId: userId,
+    collegeId: collegeData.collegeId,
+    collegeName: collegeData.collegeName,
+    location: collegeData.location,
+    rating: collegeData.rating,
+    fee: collegeData.fee,
+    image: collegeData.image,
+    savedAt: new Date().toISOString()
+  });
+  
+  return { success: true, message: 'College saved successfully' };
+};
+
+// Remove saved college
+export const removeSavedCollege = async (savedId: string) => {
+  await deleteDoc(doc(db, 'saved_colleges', savedId));
+  return { success: true };
+};
+
+// Get user's saved colleges
+export const getSavedColleges = async (userId: string) => {
+  const savedRef = collection(db, 'saved_colleges');
+  const q = query(savedRef, where('userId', '==', userId), orderBy('savedAt', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+// Check if college is saved by user
+export const isCollegeSaved = async (userId: string, collegeId: string) => {
+  const savedRef = collection(db, 'saved_colleges');
+  const q = query(savedRef, where('userId', '==', userId), where('collegeId', '==', collegeId));
+  const snapshot = await getDocs(q);
+  return !snapshot.empty;
 };

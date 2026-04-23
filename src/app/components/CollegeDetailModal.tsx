@@ -1,13 +1,14 @@
 // src/app/components/CollegeDetailModal.tsx
 
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Star, Users, Award, CheckCircle, Phone, MessageCircle, Rocket, BookOpen, Briefcase, Building, GraduationCap, MapPin, Calendar, TrendingUp, Shield, ChevronRight, Download, AlertCircle } from 'lucide-react';
+import { X, Star, Users, Award, CheckCircle, Phone, MessageCircle, Rocket, BookOpen, Briefcase, Building, GraduationCap, MapPin, Calendar, TrendingUp, Shield, ChevronRight, Download, AlertCircle, Heart, HeartOff } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { CourseDetailModal } from './CourseDetailModal';
 import { ApplicationPopup } from './ApplicationPopup';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { saveCollege, removeSavedCollege, isCollegeSaved } from '../../lib/firebase';
 
 interface CollegeDetailModalProps {
   isOpen: boolean;
@@ -353,9 +354,17 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
   const [appliedCoursesList, setAppliedCoursesList] = useState<string[]>([]);
   const [showAlreadyAppliedToast, setShowAlreadyAppliedToast] = useState(false);
   const [loadingApplied, setLoadingApplied] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savingLoading, setSavingLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const userName = userData?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Guest';
   const isMangalmay = college?.name?.includes('Mangalmay');
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // Fetch applied courses for this college
   const fetchAppliedCourses = async () => {
@@ -379,6 +388,55 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
     }
   };
 
+  // Check if college is saved
+  const checkIfSaved = async () => {
+    if (!user?.uid || !college?.id) return;
+    try {
+      const saved = await isCollegeSaved(user.uid, college.id);
+      setIsSaved(saved);
+    } catch (err) {
+      console.error('Error checking saved status:', err);
+    }
+  };
+
+  // Handle save college
+  const handleSaveCollege = async () => {
+    if (!user?.uid) {
+      showToast('Please login to save colleges', 'error');
+      return;
+    }
+    
+    setSavingLoading(true);
+    try {
+      if (isSaved) {
+        // Remove from saved
+        const savedRef = collection(db, 'saved_colleges');
+        const q = query(savedRef, where('userId', '==', user.uid), where('collegeId', '==', college.id));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          await removeSavedCollege(snapshot.docs[0].id);
+          setIsSaved(false);
+          showToast('College removed from saved list', 'success');
+        }
+      } else {
+        await saveCollege(user.uid, {
+          collegeId: college.id,
+          collegeName: college.name,
+          location: college.location,
+          rating: college.rating,
+          fee: college.fees?.split('-')[0] || 'Contact for details',
+          image: college.image
+        });
+        setIsSaved(true);
+        showToast('College saved successfully', 'success');
+      }
+    } catch (err) {
+      console.error('Error saving college:', err);
+      showToast('Failed to save college', 'error');
+    }
+    setSavingLoading(false);
+  };
+
   // Auto-hide toast after 2 seconds
   useEffect(() => {
     if (showAlreadyAppliedToast) {
@@ -393,6 +451,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
   useEffect(() => {
     if (isOpen && user?.uid && college?.id) {
       fetchAppliedCourses();
+      checkIfSaved();
     }
   }, [isOpen, user?.uid, college?.id]);
 
@@ -685,6 +744,21 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
               </button>
 
               <div className="clear-both px-6 pb-6 pt-2">
+                {/* Toast Message */}
+                <AnimatePresence>
+                  {toast && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -50 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -50 }}
+                      className="fixed top-20 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 text-white text-sm"
+                    >
+                      {toast.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                      {toast.message}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {/* Greeting */}
                 <div className="mb-6">
                   <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-100">
@@ -725,6 +799,26 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                   >
                     <Download className="w-4 h-4" />
                     Download Brochure
+                  </button>
+                  
+                  {/* Save College Button */}
+                  <button
+                    onClick={handleSaveCollege}
+                    disabled={savingLoading}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      isSaved 
+                        ? 'bg-pink-100 text-pink-600 hover:bg-pink-200' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {savingLoading ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    ) : isSaved ? (
+                      <Heart className="w-4 h-4 fill-pink-600" />
+                    ) : (
+                      <Heart className="w-4 h-4" />
+                    )}
+                    {isSaved ? 'Saved' : 'Save College'}
                   </button>
                 </div>
 
@@ -848,7 +942,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                   )}
                 </div>
 
-                {/* Stats & Apply Section - WITH ALREADY APPLIED BUTTON */}
+                {/* Stats & Apply Section */}
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 mb-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -906,7 +1000,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                   </div>
                 </div>
 
-                {/* Already Applied Toast Message - Auto hides after 2 seconds */}
+                {/* Already Applied Toast Message */}
                 <AnimatePresence>
                   {showAlreadyAppliedToast && (
                     <motion.div
@@ -955,7 +1049,6 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
           courses: getCoursesList()
         }}
         onSuccess={() => {
-          // Refresh applied courses after successful application
           fetchAppliedCourses();
         }}
       />

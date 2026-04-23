@@ -6,7 +6,8 @@ import {
   Users, Building, BookOpen, BarChart3, 
   Phone, FileText, Settings, Bell, 
   Shield, LogOut, Menu, X, Home,
-  ChevronDown, ChevronRight, Sparkles, Crown
+  ChevronDown, ChevronRight, Sparkles, Crown,
+  TrendingUp, Calendar, CheckCircle, Clock, Eye, XCircle
 } from 'lucide-react';
 import { UserManagement } from './components/UserManagement';
 import { CollegeManagement } from './components/CollegeManagement';
@@ -16,6 +17,8 @@ import { LeadManagement } from './components/LeadManagement';
 import { ContentManagement } from './components/ContentManagement';
 import { Settings as SettingsComponent } from './components/Settings';
 import { Notifications } from './components/Notifications';
+import { db } from '../lib/firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 
 type TabId = 'overview' | 'users' | 'colleges' | 'courses' | 'analytics' | 'leads' | 'content' | 'settings' | 'notifications';
 
@@ -43,18 +46,105 @@ export function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [adminName, setAdminName] = useState('Admin');
   const [adminEmail, setAdminEmail] = useState('');
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalColleges: 0,
+    totalCourses: 0,
+    totalApplications: 0,
+    pendingApplications: 0,
+    reviewedApplications: 0,
+    acceptedApplications: 0,
+    rejectedApplications: 0,
+    todayApplications: 0,
+    weekApplications: 0
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     const email = localStorage.getItem('admin_email') || 'Admin';
     setAdminEmail(email);
     setAdminName(email.split('@')[0]);
+    fetchStats();
   }, []);
+
+  const fetchStats = async () => {
+    setStatsLoading(true);
+    try {
+      // Get users count
+      const usersRef = collection(db, 'users');
+      const usersSnapshot = await getDocs(usersRef);
+      const totalUsers = usersSnapshot.size;
+
+      // Get colleges count
+      const collegesRef = collection(db, 'colleges');
+      const collegesSnapshot = await getDocs(collegesRef);
+      const totalColleges = collegesSnapshot.size;
+
+      // Get inquiries/applications
+      const inquiriesRef = collection(db, 'inquiries');
+      const inquiriesSnapshot = await getDocs(inquiriesRef);
+      const applications = inquiriesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      const totalApplications = applications.length;
+      const pendingApplications = applications.filter(a => a.status === 'pending').length;
+      const reviewedApplications = applications.filter(a => a.status === 'reviewed').length;
+      const acceptedApplications = applications.filter(a => a.status === 'accepted').length;
+      const rejectedApplications = applications.filter(a => a.status === 'rejected').length;
+
+      // Today's applications
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayApplications = applications.filter(a => {
+        const date = new Date(a.createdAt);
+        return date >= today;
+      }).length;
+
+      // This week's applications
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const weekApplications = applications.filter(a => {
+        const date = new Date(a.createdAt);
+        return date >= weekAgo;
+      }).length;
+
+      setStats({
+        totalUsers,
+        totalColleges,
+        totalCourses: 0, // Will be fetched from courses collection
+        totalApplications,
+        pendingApplications,
+        reviewedApplications,
+        acceptedApplications,
+        rejectedApplications,
+        todayApplications,
+        weekApplications
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('admin_logged_in');
     localStorage.removeItem('admin_email');
     window.location.href = '/admin-login';
   };
+
+  const StatCard = ({ title, value, icon: Icon, color, change }: any) => (
+    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-500">{title}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{value.toLocaleString()}</p>
+        </div>
+        <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center`}>
+          <Icon className="w-5 h-5 text-white" />
+        </div>
+      </div>
+    </div>
+  );
 
   const renderContent = () => {
     switch (activeTab) {
@@ -87,49 +177,49 @@ export function AdminDashboard() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              <StatCard title="Total Users" value={stats.totalUsers} icon={Users} color="bg-purple-600" />
+              <StatCard title="Total Colleges" value={stats.totalColleges} icon={Building} color="bg-blue-600" />
+              <StatCard title="Total Applications" value={stats.totalApplications} icon={FileText} color="bg-green-600" />
+              <StatCard title="Today's Apps" value={stats.todayApplications} icon={Calendar} color="bg-orange-600" />
+            </div>
+
+            {/* Application Status Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Total Users</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">Loading...</p>
+                    <p className="text-sm text-yellow-600">Pending</p>
+                    <p className="text-2xl font-bold text-yellow-700">{stats.pendingApplications}</p>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-purple-600" />
-                  </div>
+                  <Clock className="w-8 h-8 text-yellow-500" />
                 </div>
               </div>
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Total Colleges</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">Loading...</p>
+                    <p className="text-sm text-blue-600">Reviewed</p>
+                    <p className="text-2xl font-bold text-blue-700">{stats.reviewedApplications}</p>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Building className="w-5 h-5 text-blue-600" />
-                  </div>
+                  <Eye className="w-8 h-8 text-blue-500" />
                 </div>
               </div>
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+              <div className="bg-green-50 rounded-xl p-4 border border-green-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Total Courses</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">Loading...</p>
+                    <p className="text-sm text-green-600">Accepted</p>
+                    <p className="text-2xl font-bold text-green-700">{stats.acceptedApplications}</p>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                    <BookOpen className="w-5 h-5 text-green-600" />
-                  </div>
+                  <CheckCircle className="w-8 h-8 text-green-500" />
                 </div>
               </div>
-              <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+              <div className="bg-red-50 rounded-xl p-4 border border-red-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Total Leads</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">Loading...</p>
+                    <p className="text-sm text-red-600">Rejected</p>
+                    <p className="text-2xl font-bold text-red-700">{stats.rejectedApplications}</p>
                   </div>
-                  <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                    <Phone className="w-5 h-5 text-orange-600" />
-                  </div>
+                  <XCircle className="w-8 h-8 text-red-500" />
                 </div>
               </div>
             </div>
@@ -146,9 +236,9 @@ export function AdminDashboard() {
                   <Building className="w-6 h-6 text-blue-600 mx-auto mb-2" />
                   <p className="text-sm font-medium text-gray-700">Add College</p>
                 </button>
-                <button onClick={() => setActiveTab('courses')} className="p-4 bg-green-50 rounded-xl text-center hover:bg-green-100 transition-colors">
-                  <BookOpen className="w-6 h-6 text-green-600 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-gray-700">Add Course</p>
+                <button onClick={() => setActiveTab('leads')} className="p-4 bg-green-50 rounded-xl text-center hover:bg-green-100 transition-colors">
+                  <Phone className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                  <p className="text-sm font-medium text-gray-700">View Applications</p>
                 </button>
                 <button onClick={() => setActiveTab('notifications')} className="p-4 bg-orange-50 rounded-xl text-center hover:bg-orange-100 transition-colors">
                   <Bell className="w-6 h-6 text-orange-600 mx-auto mb-2" />
@@ -157,17 +247,39 @@ export function AdminDashboard() {
               </div>
             </div>
 
-            {/* Tip of the Day */}
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-5 border border-purple-100">
-              <div className="flex items-start gap-3">
-                <Sparkles className="w-5 h-5 text-purple-600 mt-0.5" />
-                <div>
-                  <h4 className="font-semibold text-gray-900">💡 Pro Tip</h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Use the sidebar to navigate between different management sections. 
-                    You can manage users, colleges, courses, leads, and more from one place!
-                  </p>
+            {/* Recent Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-purple-600" />
+                  Recent Activity
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">Applications this week</span>
+                    <span className="font-semibold text-purple-600">{stats.weekApplications}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm text-gray-600">Applications today</span>
+                    <span className="font-semibold text-blue-600">{stats.todayApplications}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-sm text-gray-600">Total registered users</span>
+                    <span className="font-semibold text-green-600">{stats.totalUsers}</span>
+                  </div>
                 </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-purple-600" />
+                  Quick Tips
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-start gap-2">💡 <span>Use "Lead Management" to review student applications</span></li>
+                  <li className="flex items-start gap-2">💡 <span>Update application status to keep students informed</span></li>
+                  <li className="flex items-start gap-2">💡 <span>Export data as CSV for offline analysis</span></li>
+                  <li className="flex items-start gap-2">💡 <span>Send notifications to engage with students</span></li>
+                </ul>
               </div>
             </div>
           </div>
