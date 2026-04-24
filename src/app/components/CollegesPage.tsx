@@ -8,6 +8,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { CollegeDetailModal } from './CollegeDetailModal';
 import { Login } from './Login';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 
 export interface College {
   id: string;
@@ -24,422 +26,10 @@ export interface College {
   placementRate?: string;
   fees?: string;
   admissionOpen?: boolean;
+  description?: string;
+  facilities?: string[];
+  accreditation?: string[];
 }
-
-export const colleges: College[] = [
-  {
-    id: 'gn-group',
-    name: 'GN Group of Institutions',
-    fullName: 'Greater Noida Institute of Technology, Management, Pharmacy & Law',
-    location: 'Knowledge Park II & III, Greater Noida',
-    rating: 4.3,
-    students: '6,500+',
-    type: 'Multi-Discipline',
-    image: 'college-img/GNGroup/Gngrp1.jpeg',
-    nirfRank: 'Top 200',
-    courses: ['B.Tech', 'MBA', 'PGDM', 'BBA', 'BCA', 'B.Com', 'B.Pharm', 'D.Pharm', 'LL.B'],
-    highestPackage: '₹14 LPA',
-    placementRate: '90%',
-    fees: '₹31,000 - ₹1.57L/semester',
-    admissionOpen: true
-  },
-  {
-    id: 'mangalmay',
-    name: 'Mangalmay Group of Institutions',
-    fullName: 'Mangalmay Institute of Management & Technology',
-    location: 'Knowledge Park II, Greater Noida',
-    rating: 4.5,
-    students: '5,500+',
-    type: 'Multi-Discipline',
-    image: 'college-img/Mangalmay/m3.jpg',
-    nirfRank: 'Top 150',
-    courses: ['B.Tech CSE', 'B.Tech (AI/DS)', 'MBA++', 'BBA', 'BCA', 'B.Pharm', 'B.A.B.Ed'],
-    highestPackage: '₹25 LPA',
-    placementRate: '92%',
-    fees: '₹55,000 - ₹2.62L/year',
-    admissionOpen: true
-  },
-  {
-    id: 'sharda-university',
-    name: 'Sharda University',
-    fullName: 'Sharda University',
-    location: 'Knowledge Park III, Greater Noida',
-    rating: 4.3,
-    students: '12,000+',
-    type: 'Multi-Discipline',
-    image: 'college-img/Sharda/sh1.jpeg',
-    nirfRank: '78',
-    courses: ['B.Tech', 'MBA', 'MBBS', 'BBA', 'BCA', 'B.Pharm', 'LL.B', 'B.Sc Nursing'],
-    highestPackage: '₹42 LPA',
-    placementRate: '88%',
-    fees: '₹1.8 - 3.5 Lakhs/year',
-    admissionOpen: true
-  },
-  {
-    id: 'galgotias-university',
-    name: 'Galgotias University',
-    fullName: 'Galgotias University',
-    location: 'Yamuna Expressway, Greater Noida',
-    rating: 4.2,
-    students: '15,000+',
-    type: 'Multi-Discipline',
-    image: 'college-img/Galgotias/gu1.jpeg',
-    nirfRank: '151-200',
-    courses: ['B.Tech', 'MBA', 'BCA', 'BBA', 'LL.B', 'B.Pharm'],
-    highestPackage: '₹39 LPA',
-    placementRate: '85%',
-    fees: '₹1.2 - 2.2 Lakhs/year',
-    admissionOpen: true
-  },
-  {
-    id: 'niet',
-    name: 'NIET',
-    fullName: 'Noida Institute of Engineering & Technology',
-    location: 'Knowledge Park II, Greater Noida',
-    rating: 4.4,
-    students: '5,000+',
-    type: 'Multi-Discipline',
-    image: 'college-img/NIET/n1.webp',
-    nirfRank: '101-150',
-    courses: ['B.Tech', 'MBA', 'B.Pharm', 'D.Pharm', 'BCA', 'BBA'],
-    highestPackage: '₹47 LPA',
-    placementRate: '92%',
-    fees: '₹1.2 - 2.5 Lakhs/year',
-    admissionOpen: true
-  },
-  {
-    id: 'gl-bajaj',
-    name: 'GL Bajaj',
-    fullName: 'GL Bajaj Institute of Technology & Management',
-    location: 'Knowledge Park III, Greater Noida',
-    rating: 4.1,
-    students: '3,500+',
-    type: 'Engineering',
-    image: 'college-img/GLBajaj/gl1.jpg',
-    nirfRank: '151',
-    courses: ['B.Tech', 'MBA', 'MCA'],
-    highestPackage: '₹44 LPA',
-    placementRate: '90%',
-    fees: '₹1.1 - 1.8 Lakhs/year',
-    admissionOpen: true
-  },
-  {
-    id: 'iimt-group',
-    name: 'IIMT Group',
-    fullName: 'IIMT Group of Colleges',
-    location: 'Knowledge Park I, Greater Noida',
-    rating: 4.0,
-    students: '4,000+',
-    type: 'Multi-Discipline',
-    image: 'college-img/IIMT/iimt5.png',
-    nirfRank: 'Top 200',
-    courses: ['B.Tech', 'MBA', 'BCA', 'BBA', 'B.Pharm', 'D.Pharm', 'LL.B'],
-    highestPackage: '₹32 LPA',
-    placementRate: '82%',
-    fees: '₹48,000 - ₹8.6 Lakhs/year',
-    admissionOpen: true
-  },
-  {
-    id: 'lloyd',
-    name: 'Lloyd Institute',
-    fullName: 'Lloyd Institute of Engineering & Technology',
-    location: 'Knowledge Park II, Greater Noida',
-    rating: 4.0,
-    students: '2,500+',
-    type: 'Engineering',
-    image: 'college-img/Lloyd/l2.webp',
-    courses: ['B.Tech', 'MBA', 'MCA'],
-    highestPackage: '₹28 LPA',
-    placementRate: '80%',
-    fees: '₹2.45 - ₹9.46 Lakhs/year',
-    admissionOpen: true
-  },
-  {
-    id: 'its-engineering',
-    name: 'ITS Engineering',
-    fullName: 'ITS Engineering College',
-    location: '46, Knowledge Park III, Greater Noida',
-    rating: 4.2,
-    students: '3,000+',
-    type: 'Engineering',
-    image: 'college-img/ITS/i1.webp',
-    nirfRank: 'Top 200',
-    courses: ['B.Tech', 'B.Tech (LEET)', 'MBA', 'BCA'],
-    highestPackage: '₹45 LPA',
-    placementRate: '85%',
-    fees: '₹4.24 - 10.60 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'bennett-university',
-    name: 'Bennett University',
-    fullName: 'Bennett University',
-    location: 'Tech Zone II, Greater Noida',
-    rating: 4.3,
-    students: '4,500+',
-    type: 'Multi-Discipline',
-    image: 'college-img/Bennett/bb4.png',
-    nirfRank: 'Top 100',
-    courses: ['B.Tech', 'MBA', 'BBA', 'BCA', 'LL.B', 'B.Com'],
-    highestPackage: '₹54 LPA',
-    placementRate: '94%',
-    fees: '₹15.0 Lakhs/year',
-    admissionOpen: true
-  },
-  {
-    id: 'jims-noida',
-    name: 'JIMS',
-    fullName: 'Jagannath Institute of Management Sciences',
-    location: 'Noida, Uttar Pradesh',
-    rating: 4.25,
-    students: '3,000+',
-    type: 'Multi-Discipline',
-    image: 'college-img/JIMS/j1.avif',
-    courses: ['BBA', 'BCA', 'MBA', 'MCA', 'B.Com'],
-    highestPackage: '₹12 LPA',
-    placementRate: '85%',
-    fees: '₹4.5 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'amity-greater-noida',
-    name: 'Amity University',
-    fullName: 'Amity University Greater Noida Campus',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 4.2,
-    students: '10,000+',
-    type: 'Multi-Discipline',
-    image: 'college-img/amity-uni/am8.jpg',
-    nirfRank: '35',
-    courses: ['B.Tech', 'MBA', 'BBA', 'BCA', 'LL.B', 'B.Arch'],
-    highestPackage: '₹47 LPA',
-    placementRate: '92%',
-    fees: '₹10.0 Lakhs/year',
-    admissionOpen: true
-  },
-  {
-    id: 'metro-college',
-    name: 'Metro College',
-    fullName: 'Metro College of Health Sciences and Research',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 4.0,
-    students: '1,500+',
-    type: 'Medical',
-    image: 'college-img/metro-college/m1.jpg',
-    courses: ['B.Sc Nursing', 'B.Pharm', 'D.Pharm', 'BPT', 'MLT'],
-    highestPackage: '₹6 LPA',
-    placementRate: '80%',
-    fees: '₹3.8 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'ishan-educational',
-    name: 'Ishan Educational',
-    fullName: 'Ishan Educational Institutions',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 3.8,
-    students: '2,000+',
-    type: 'Multi-Discipline',
-    image: 'college-img/ishan/i1.jpeg',
-    courses: ['B.Tech', 'MBA', 'BBA', 'BCA', 'B.Pharm'],
-    highestPackage: '₹8 LPA',
-    placementRate: '75%',
-    fees: '₹2.5 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'global-institute',
-    name: 'Global Institute',
-    fullName: 'Global Institute of Information Technology',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 3.55,
-    students: '1,200+',
-    type: 'IT & Computer',
-    image: 'college-img/global/g2.jpeg',
-    courses: ['BCA', 'MCA', 'B.Tech IT'],
-    highestPackage: '₹7 LPA',
-    placementRate: '75%',
-    fees: '₹2.0 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'himt-college',
-    name: 'HIMT College',
-    fullName: 'HIMT College',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 3.75,
-    students: '1,000+',
-    type: 'Multi-Discipline',
-    image: 'college-img/himt/h2.avif',
-    courses: ['BBA', 'BCA', 'B.Com'],
-    highestPackage: '₹5 LPA',
-    placementRate: '70%',
-    fees: '₹2.2 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'noida-international-university',
-    name: 'Noida International University',
-    fullName: 'Noida International University',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 4.0,
-    students: '8,000+',
-    type: 'Multi-Discipline',
-    image: 'college-img/niu/n1.jpg',
-    courses: ['B.Tech', 'MBA', 'BBA', 'BCA', 'LL.B', 'B.Pharm', 'B.Sc Nursing'],
-    highestPackage: '₹25 LPA',
-    placementRate: '85%',
-    fees: '₹5.0 Lakhs/year',
-    admissionOpen: true
-  },
-  {
-    id: 'innovative-group',
-    name: 'Innovative Group',
-    fullName: 'Innovative Group of Colleges',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 3.65,
-    students: '2,500+',
-    type: 'Multi-Discipline',
-    image: 'college-img/innovative/in4.jpg',
-    courses: ['B.Tech', 'MBA', 'BCA', 'BBA'],
-    highestPackage: '₹7 LPA',
-    placementRate: '70%',
-    fees: '₹3.0 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'nimt-college',
-    name: 'NIMT College',
-    fullName: 'NIMT College',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 3.8,
-    students: '1,800+',
-    type: 'Multi-Discipline',
-    image: 'college-img/nimt/ni1.png',
-    courses: ['B.Tech', 'MBA', 'BBA', 'BCA'],
-    highestPackage: '₹6 LPA',
-    placementRate: '70%',
-    fees: '₹3.0 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'dronacharya',
-    name: 'Dronacharya Group',
-    fullName: 'Dronacharya Group of Institutions',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 3.85,
-    students: '3,000+',
-    type: 'Engineering',
-    image: 'college-img/dronacharya/d5.jpeg',
-    courses: ['B.Tech', 'MBA', 'MCA'],
-    highestPackage: '₹10 LPA',
-    placementRate: '80%',
-    fees: '₹3.8 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'ram-eesh-institute',
-    name: 'Ram-Eesh Institute',
-    fullName: 'Ram-Eesh Institute',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 3.75,
-    students: '1,500+',
-    type: 'Multi-Discipline',
-    image: 'college-img/ram-ese/r3.webp',
-    courses: ['BBA', 'BCA', 'B.Com'],
-    highestPackage: '₹5 LPA',
-    placementRate: '70%',
-    fees: '₹3.2 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'gniot',
-    name: 'GNIOT Group',
-    fullName: 'GNIOT Group of Institutions',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 4.05,
-    students: '4,500+',
-    type: 'Multi-Discipline',
-    image: 'college-img/gniot/g5.jpg',
-    courses: ['B.Tech', 'MBA', 'BCA', 'BBA'],
-    highestPackage: '₹12 LPA',
-    placementRate: '85%',
-    fees: '₹4.8 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'accurate-institute',
-    name: 'Accurate Institute',
-    fullName: 'Accurate Institute of Management and Technology',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 3.9,
-    students: '2,200+',
-    type: 'Multi-Discipline',
-    image: 'college-img/accurate/a8.jpg',
-    courses: ['B.Tech', 'MBA', 'BCA', 'BBA'],
-    highestPackage: '₹10 LPA',
-    placementRate: '82%',
-    fees: '₹4.5 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'kcc-institute',
-    name: 'KCC Institute',
-    fullName: 'KCC Institute of Technology & Management',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 4.0,
-    students: '2,500+',
-    type: 'Multi-Discipline',
-    image: 'college-img/kcc/k7.webp',
-    courses: ['B.Tech', 'MBA', 'BCA', 'BBA'],
-    highestPackage: '₹9 LPA',
-    placementRate: '80%',
-    fees: '₹4.0 Lakhs (Total)',
-    admissionOpen: true
-  },
-  {
-    id: 'united-college-of-education',
-    name: 'United College',
-    fullName: 'United College of Education',
-    location: 'Greater Noida, Uttar Pradesh',
-    rating: 3.95,
-    students: '1,200+',
-    type: 'Education',
-    image: 'college-img/united/u6.webp',
-    courses: ['B.Ed', 'D.El.Ed', 'B.A.B.Ed'],
-    highestPackage: '₹4.5 LPA',
-    placementRate: '85%',
-    fees: '₹3.5 Lakhs (Total)',
-    admissionOpen: true
-  }
-];
-
-// Helper function to convert college data to modal format
-const formatCollegeForModal = (college: College) => {
-  return {
-    id: college.id,
-    name: college.name,
-    location: college.location,
-    rating: college.rating,
-    reviews: 1250,
-    established: '2000',
-    about: `${college.name} is a premier educational institution in Greater Noida offering diverse programs. With state-of-the-art infrastructure, experienced faculty, and strong industry connections, the institution has consistently delivered excellent academic results and placements.`,
-    facts: [
-      `The university has all the accreditations and recognitions for providing quality education: UGC-DEB, AICTE, NIRF, ISO, AIU, ACU, WES and more.`,
-      `${college.name} is a NAAC rated A+ institution with a grade point of 3.64.`,
-      `Multi-faceted learning support features such as e-learning toolkit, self-evaluation kits, case studies, university LMS, digital libraries etc.`
-    ],
-    courses: college.courses || [],
-    feePerSemester: college.fees?.split('-')[0] || 'Contact for details',
-    highestPackage: college.highestPackage || 'Contact for details',
-    averagePackage: college.placementRate ? `₹${Math.floor(parseInt(college.highestPackage?.replace(/[^0-9]/g, '') || '500000') * 0.4 / 100000)} LPA` : 'Contact for details',
-    topRecruiters: ['Amazon', 'TCS', 'Microsoft', 'Deloitte', 'HDFC Bank', 'Wipro', 'Infosys', 'Samsung'],
-    facilities: ['Smart Classrooms', 'Advanced Labs', 'Digital Library', 'Hostel', 'Sports Complex', 'Wi-Fi Campus', 'Auditorium', 'Cafeteria'],
-    accreditation: ['AICTE', 'NBA', 'NAAC A+'],
-    lastMonthStudents: Math.floor(Math.random() * (60000 - 10000) + 10000),
-    hostelFee: '₹1,10,000 - ₹1,45,000/year'
-  };
-};
 
 const UG_COURSES = [
   { label: 'BBA', icon: Briefcase },
@@ -481,11 +71,39 @@ const SkeletonCard = () => (
   </div>
 );
 
+// Helper function to convert Firebase college data to modal format
+const formatCollegeForModal = (college: College) => {
+  return {
+    id: college.id,
+    name: college.name,
+    location: college.location,
+    rating: college.rating,
+    reviews: 1250,
+    established: '2000',
+    about: college.description || `${college.name} is a premier educational institution in Greater Noida offering diverse programs. With state-of-the-art infrastructure, experienced faculty, and strong industry connections, the institution has consistently delivered excellent academic results and placements.`,
+    facts: [
+      `The university has all the accreditations and recognitions for providing quality education: UGC-DEB, AICTE, NIRF, ISO, AIU, ACU, WES and more.`,
+      `${college.name} is a NAAC rated A+ institution with a grade point of 3.64.`,
+      `Multi-faceted learning support features such as e-learning toolkit, self-evaluation kits, case studies, university LMS, digital libraries etc.`
+    ],
+    courses: college.courses || [],
+    feePerSemester: college.fees?.split('-')[0] || 'Contact for details',
+    highestPackage: college.highestPackage || 'Contact for details',
+    averagePackage: college.placementRate ? `₹${Math.floor(parseInt(college.highestPackage?.replace(/[^0-9]/g, '') || '500000') * 0.4 / 100000)} LPA` : 'Contact for details',
+    topRecruiters: ['Amazon', 'TCS', 'Microsoft', 'Deloitte', 'HDFC Bank', 'Wipro', 'Infosys', 'Samsung'],
+    facilities: college.facilities || ['Smart Classrooms', 'Advanced Labs', 'Digital Library', 'Hostel', 'Sports Complex', 'Wi-Fi Campus', 'Auditorium', 'Cafeteria'],
+    accreditation: college.accreditation || ['AICTE', 'NBA', 'NAAC A+'],
+    lastMonthStudents: Math.floor(Math.random() * (60000 - 10000) + 10000),
+    hostelFee: '₹1,10,000 - ₹1,45,000/year'
+  };
+};
+
 export function CollegesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const [colleges, setColleges] = useState<College[]>([]);
   const [selectedCollege, setSelectedCollege] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -500,10 +118,27 @@ export function CollegesPage() {
     pgCourses: true
   });
 
+  // ✅ Fetch colleges from Firebase
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 300);
-    return () => clearTimeout(timer);
+    fetchColleges();
   }, []);
+
+  const fetchColleges = async () => {
+    setIsLoading(true);
+    try {
+      const collegesRef = collection(db, 'colleges');
+      const snapshot = await getDocs(collegesRef);
+      const collegesData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as College[];
+      setColleges(collegesData);
+    } catch (error) {
+      console.error('Error fetching colleges:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const course = searchParams.get('course');
@@ -524,18 +159,18 @@ export function CollegesPage() {
         : true;
 
       const matchesSearch = searchTerm === '' ||
-        college.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        college.location.toLowerCase().includes(searchTerm.toLowerCase());
+        college.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        college.location?.toLowerCase().includes(searchTerm.toLowerCase());
 
       return matchesCourse && matchesSearch;
     });
-  }, [selectedCourse, searchTerm]);
+  }, [selectedCourse, searchTerm, colleges]);
 
   const sortedColleges = useMemo(() => {
     const sorted = [...filteredColleges];
     switch (sortBy) {
       case 'rating-high':
-        return sorted.sort((a, b) => b.rating - a.rating);
+        return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
       case 'fees-low':
         return sorted.sort((a, b) => {
           const aNum = parseInt(a.fees?.replace(/[^0-9]/g, '') || '999999');
@@ -559,15 +194,13 @@ export function CollegesPage() {
     setSearchParams(newSelected ? { course: newSelected.toLowerCase() } : {});
   }, [selectedCourse, setSearchParams]);
 
-  // ✅ FIXED: College Click Handler - Opens Login Popup if not logged in
+  // ✅ College Click Handler - Opens Login Popup if not logged in
   const handleCollegeClick = useCallback((college: College) => {
     if (!user) {
-      // Save the college for later
       setPendingCollege(college);
       setIsLoginOpen(true);
       return;
     }
-    // User is logged in - Open college modal
     const modalData = formatCollegeForModal(college);
     setSelectedCollege(modalData);
     setIsModalOpen(true);
@@ -823,6 +456,9 @@ export function CollegesPage() {
                                 alt={college.name}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                 loading="lazy"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1562774053-701939374585?w=800';
+                                }}
                               />
                               {college.nirfRank && (
                                 <div className="absolute top-3 left-3 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-bold">
@@ -893,7 +529,7 @@ export function CollegesPage() {
                               <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                                 <span className="text-xs text-gray-500 flex items-center gap-1">
                                   <IndianRupee className="w-3 h-3" />
-                                  {college.fees?.split('-')[0]}
+                                  {college.fees?.split('-')[0] || 'Contact for fee'}
                                 </span>
                                 <span className="text-purple-600 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
                                   View Details <ArrowRight className="w-4 h-4" />
@@ -924,14 +560,14 @@ export function CollegesPage() {
         </div>
       </div>
 
-      {/* ✅ College Detail Modal */}
+      {/* College Detail Modal */}
       <CollegeDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         college={selectedCollege}
       />
 
-      {/* ✅ Login Modal - Opens when user clicks on college without login */}
+      {/* Login Modal */}
       <Login
         isOpen={isLoginOpen}
         onClose={() => {

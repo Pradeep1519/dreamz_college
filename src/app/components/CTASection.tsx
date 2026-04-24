@@ -12,14 +12,12 @@ interface CTASectionProps {
   collegeCount?: number;
 }
 
-import { colleges } from './CollegesPage';
-
 export function CTASection({ 
   onNavigateToCounseling,
   onChatWithExpert,
   whatsappNumber = '918796033021',
   whatsappMessage = 'Hello Dreamz College Team! I need guidance for college admission and course selection.',
-  collegeCount = colleges?.length || 9
+  collegeCount = 25
 }: CTASectionProps) {
 
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);

@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 // Import colleges data
-import { colleges, College } from './CollegesPage';
 
 interface EngineeringCollege extends College {
   isEngineering: boolean;

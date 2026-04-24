@@ -3,7 +3,6 @@ import { MapPin, Star, Users, Award, ArrowRight, Search, TrendingUp, DollarSign,
 import { motion, AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { colleges } from './CollegesPage';
 
 export function MBACollegesPage() {
   const navigate = useNavigate();

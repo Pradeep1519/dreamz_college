@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Users, Phone, Mail, MessageCircle, Calendar, 
+  Users, User, Phone, Mail, MessageCircle, Calendar, 
   Search, Filter, Download, RefreshCw, Eye,
   CheckCircle, XCircle, Clock, AlertCircle,
   Star, UserPlus, MessageSquare, Share2,

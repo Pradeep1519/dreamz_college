@@ -1,7 +1,7 @@
 // src/app/components/CourseDetailModal.tsx
 
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ArrowLeft, Calendar, Users, GraduationCap, IndianRupee, CheckCircle, Rocket, MessageCircle, BookOpen, Clock, Award, MapPin } from 'lucide-react';
+import { X, ArrowLeft, Calendar, Users, GraduationCap, IndianRupee, CheckCircle, Rocket, MessageCircle, BookOpen, Clock, Award, MapPin, University } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -13,335 +13,6 @@ interface CourseDetailModalProps {
   collegeName?: string;
 }
 
-// ✅ GN GROUP - Course Data
-const gnGroupCoursesData: Record<string, any> = {
-  'B.Tech (AKTU)': {
-    name: 'B.Tech (Computer Science & Engineering)',
-    duration: '4 Years (8 Semesters)',
-    eligibility: '10+2 with Physics, Chemistry, Mathematics with minimum 45% marks. JEE Main/UPSEE qualified.',
-    seats: 180,
-    registrationFee: 10000,
-    feePerYear: 264000,
-    totalFee: 1056000,
-    feeStructure: [
-      { year: '1st Year', amount: 264000 },
-      { year: '2nd Year', amount: 264000 },
-      { year: '3rd Year', amount: 264000 },
-      { year: '4th Year', amount: 264000 }
-    ],
-    affiliation: 'AKTU, Lucknow',
-    highlights: ['NBA Accredited', 'Advanced Computing Labs', 'Industry Certifications', 'Research Opportunities']
-  },
-  'B.Tech (GGSIPU)': {
-    name: 'B.Tech (Computer Science & Engineering)',
-    duration: '4 Years (8 Semesters)',
-    eligibility: '10+2 with Physics, Chemistry, Mathematics with minimum 45% marks. JEE Main/UPSEE qualified.',
-    seats: 180,
-    registrationFee: 10000,
-    feePerYear: 314400,
-    totalFee: 1257600,
-    feeStructure: [
-      { year: '1st Year', amount: 314400 },
-      { year: '2nd Year', amount: 314400 },
-      { year: '3rd Year', amount: 314400 },
-      { year: '4th Year', amount: 314400 }
-    ],
-    affiliation: 'GGSIPU, Delhi',
-    highlights: ['NBA Accredited', 'Advanced Computing Labs', 'Industry Certifications', 'Research Opportunities']
-  },
-  'B.Tech (LEET)': {
-    name: 'B.Tech (LEET - Lateral Entry)',
-    duration: '3 Years (6 Semesters)',
-    eligibility: 'Diploma in Engineering with minimum 45% marks',
-    seats: 60,
-    registrationFee: 10000,
-    feePerYear: 154000,
-    totalFee: 462000,
-    feeStructure: [
-      { year: '2nd Year', amount: 154000 },
-      { year: '3rd Year', amount: 154000 },
-      { year: '4th Year', amount: 154000 }
-    ],
-    affiliation: 'AKTU, Lucknow',
-    highlights: ['Lateral Entry', 'Direct 2nd Year Admission', 'Fast Track Program']
-  },
-  'MBA': {
-    name: 'MBA (Master of Business Administration)',
-    duration: '2 Years (4 Semesters)',
-    eligibility: 'Bachelor\'s degree with minimum 50% marks. MAT/CAT/CMAT qualified.',
-    seats: 120,
-    registrationFee: 10000,
-    feePerYear: 179400,
-    totalFee: 358800,
-    feeStructure: [
-      { year: '1st Year', amount: 179400 },
-      { year: '2nd Year', amount: 179400 }
-    ],
-    affiliation: 'AKTU, Lucknow',
-    highlights: ['AICTE Approved', 'Industry Focused Curriculum', 'Case Based Teaching', '100% Placement Assistance']
-  },
-  'PGDM': {
-    name: 'PGDM (Post Graduate Diploma in Management)',
-    duration: '2 Years (Full Time)',
-    eligibility: 'Bachelor\'s degree with minimum 50% marks. Valid score in CAT/MAT/CMAT/XAT.',
-    seats: 60,
-    registrationFee: 10000,
-    feePerYear: 287500,
-    totalFee: 575000,
-    feeStructure: [
-      { year: '1st Year', amount: 287500 },
-      { year: '2nd Year', amount: 287500 }
-    ],
-    affiliation: 'AICTE Approved',
-    highlights: ['AICTE Approved', 'Industry Focused Curriculum', 'Global Exposure', '100% Placement Record']
-  },
-  'BBA': {
-    name: 'BBA (Bachelor of Business Administration)',
-    duration: '3 Years (6 Semesters)',
-    eligibility: '10+2 with minimum 45% marks from recognized board',
-    seats: 120,
-    registrationFee: 10000,
-    feePerYear: 82500,
-    totalFee: 247500,
-    feeStructure: [
-      { year: '1st Year', amount: 82500 },
-      { year: '2nd Year', amount: 82500 },
-      { year: '3rd Year', amount: 82500 }
-    ],
-    affiliation: 'CCS University, Meerut',
-    highlights: ['Industry Exposure', 'Soft Skills Training', 'Internship Program', 'Personality Development']
-  },
-  'BCA': {
-    name: 'BCA (Bachelor of Computer Applications)',
-    duration: '3 Years (6 Semesters)',
-    eligibility: '10+2 with Mathematics/Computer Science with minimum 45% marks',
-    seats: 120,
-    registrationFee: 10000,
-    feePerYear: 95000,
-    totalFee: 285000,
-    feeStructure: [
-      { year: '1st Year', amount: 95000 },
-      { year: '2nd Year', amount: 95000 },
-      { year: '3rd Year', amount: 95000 }
-    ],
-    affiliation: 'CCS University, Meerut',
-    highlights: ['Programming Labs', 'Industry Certifications', 'Project Based Learning', 'Placement Support']
-  },
-  'B.Com': {
-    name: 'B.Com (Bachelor of Commerce)',
-    duration: '3 Years (6 Semesters)',
-    eligibility: '10+2 with minimum 45% marks from recognized board',
-    seats: 120,
-    registrationFee: 10000,
-    feePerYear: 82500,
-    totalFee: 247500,
-    feeStructure: [
-      { year: '1st Year', amount: 82500 },
-      { year: '2nd Year', amount: 82500 },
-      { year: '3rd Year', amount: 82500 }
-    ],
-    affiliation: 'CCS University, Meerut',
-    highlights: ['Tally Training', 'GST Certification', 'Industry Exposure', 'Soft Skills Development']
-  },
-  'B.Pharm': {
-    name: 'B.Pharm (Bachelor of Pharmacy)',
-    duration: '4 Years (8 Semesters)',
-    eligibility: '10+2 with PCB/PCM with minimum 45% marks',
-    seats: 100,
-    registrationFee: 10000,
-    feePerYear: 246000,
-    totalFee: 984000,
-    feeStructure: [
-      { year: '1st Year', amount: 246000 },
-      { year: '2nd Year', amount: 246000 },
-      { year: '3rd Year', amount: 246000 },
-      { year: '4th Year', amount: 246000 }
-    ],
-    affiliation: 'AKTU, Lucknow',
-    highlights: ['PCI Approved', 'Modern Labs', 'Herbal Garden', 'Industry Training', 'Research Projects']
-  },
-  'D.Pharm': {
-    name: 'D.Pharm (Diploma in Pharmacy)',
-    duration: '2 Years (4 Semesters)',
-    eligibility: '10+2 with PCB/PCM with minimum 50% marks',
-    seats: 60,
-    registrationFee: 10000,
-    feePerYear: 100000,
-    totalFee: 200000,
-    feeStructure: [
-      { year: '1st Year', amount: 100000 },
-      { year: '2nd Year', amount: 100000 }
-    ],
-    affiliation: 'BTE, Lucknow',
-    highlights: ['PCI Approved', 'Practical Training', 'Hospital Internship', 'Industry Ready']
-  },
-  'LL.B': {
-    name: 'LL.B (Bachelor of Laws)',
-    duration: '3 Years (6 Semesters)',
-    eligibility: 'Graduation with minimum 45% marks',
-    seats: 120,
-    registrationFee: 10000,
-    feePerYear: 62000,
-    totalFee: 186000,
-    feeStructure: [
-      { year: '1st Year', amount: 62000 },
-      { year: '2nd Year', amount: 62000 },
-      { year: '3rd Year', amount: 62000 }
-    ],
-    affiliation: 'CCS University, Meerut',
-    highlights: ['BCI Approved', 'Moot Court', 'Legal Aid Clinic', 'Internship Opportunities']
-  }
-};
-
-// ✅ MANGALMAY GROUP - Course Data
-const mangalmayCoursesData: Record<string, any> = {
-  'MBA (IIM Certification)': {
-    name: 'MBA (IIM Certification)',
-    duration: '2 Years (4 Semesters)',
-    eligibility: "Bachelor's degree with minimum 50% marks. Valid score in MAT/CAT/CMAT.",
-    seats: 120,
-    registrationFee: 10000,
-    feePerYear: 310000,
-    totalFee: 525000,
-    feeStructure: [
-      { year: '1st Year', amount: 310000 },
-      { year: '2nd Year', amount: 215000 }
-    ],
-    affiliation: 'AKTU, Lucknow',
-    highlights: ['IIM Certification', 'Industry Focused Curriculum', 'Case Based Teaching', '100% Placement Assistance']
-  },
-  'MBA': {
-    name: 'MBA (Master of Business Administration)',
-    duration: '2 Years (4 Semesters)',
-    eligibility: "Bachelor's degree with minimum 50% marks. MAT/CAT/CMAT qualified.",
-    seats: 120,
-    registrationFee: 10000,
-    feePerYear: 160000,
-    totalFee: 309000,
-    feeStructure: [
-      { year: '1st Year', amount: 160000 },
-      { year: '2nd Year', amount: 149000 }
-    ],
-    affiliation: 'AKTU, Lucknow',
-    highlights: ['AICTE Approved', 'Industry Focused Curriculum', 'Case Based Teaching', '100% Placement Assistance']
-  },
-  'B.Tech Advance': {
-    name: 'B.Tech Advance',
-    duration: '4 Years (8 Semesters)',
-    eligibility: '10+2 with Physics, Chemistry, Mathematics with minimum 45% marks. JEE Main/UPSEE qualified.',
-    seats: 180,
-    registrationFee: 10000,
-    feePerYear: 165000,
-    totalFee: 660000,
-    feeStructure: [
-      { year: '1st Year', amount: 165000 },
-      { year: '2nd Year', amount: 165000 },
-      { year: '3rd Year', amount: 165000 },
-      { year: '4th Year', amount: 165000 }
-    ],
-    affiliation: 'AKTU, Lucknow',
-    highlights: ['NBA Accredited', 'Advanced Computing Labs', 'Industry Certifications', 'Research Opportunities']
-  },
-  'B.Tech CSE (AI/CS/DS)': {
-    name: 'B.Tech CSE (AI/CS/DS)',
-    duration: '4 Years (8 Semesters)',
-    eligibility: '10+2 with Physics, Chemistry, Mathematics with minimum 45% marks. JEE Main/UPSEE qualified.',
-    seats: 180,
-    registrationFee: 10000,
-    feePerYear: 129000,
-    totalFee: 516000,
-    feeStructure: [
-      { year: '1st Year', amount: 129000 },
-      { year: '2nd Year', amount: 129000 },
-      { year: '3rd Year', amount: 129000 },
-      { year: '4th Year', amount: 129000 }
-    ],
-    affiliation: 'AKTU, Lucknow',
-    highlights: ['NBA Accredited', 'AI/ML Labs', 'Industry Certifications', 'Research Opportunities']
-  },
-  'BBA (PLATINA)': {
-    name: 'BBA (PLATINA)',
-    duration: '3 Years (6 Semesters)',
-    eligibility: '10+2 with minimum 45% marks from recognized board',
-    seats: 120,
-    registrationFee: 10000,
-    feePerYear: 129000,
-    totalFee: 387000,
-    feeStructure: [
-      { year: '1st Year', amount: 129000 },
-      { year: '2nd Year', amount: 129000 },
-      { year: '3rd Year', amount: 129000 }
-    ],
-    affiliation: 'CCS University, Meerut',
-    highlights: ['Industry Exposure', 'Soft Skills Training', 'Internship Program', 'Personality Development']
-  },
-  'BBA': {
-    name: 'BBA (Bachelor of Business Administration)',
-    duration: '3 Years (6 Semesters)',
-    eligibility: '10+2 with minimum 45% marks from recognized board',
-    seats: 120,
-    registrationFee: 10000,
-    feePerYear: 84000,
-    totalFee: 252000,
-    feeStructure: [
-      { year: '1st Year', amount: 84000 },
-      { year: '2nd Year', amount: 84000 },
-      { year: '3rd Year', amount: 84000 }
-    ],
-    affiliation: 'CCS University, Meerut',
-    highlights: ['Industry Exposure', 'Soft Skills Training', 'Internship Program', 'Personality Development']
-  },
-  'BCA': {
-    name: 'BCA (Bachelor of Computer Applications)',
-    duration: '3 Years (6 Semesters)',
-    eligibility: '10+2 with Mathematics/Computer Science with minimum 45% marks',
-    seats: 120,
-    registrationFee: 10000,
-    feePerYear: 84000,
-    totalFee: 252000,
-    feeStructure: [
-      { year: '1st Year', amount: 84000 },
-      { year: '2nd Year', amount: 84000 },
-      { year: '3rd Year', amount: 84000 }
-    ],
-    affiliation: 'CCS University, Meerut',
-    highlights: ['Programming Labs', 'Industry Certifications', 'Project Based Learning', 'Placement Support']
-  },
-  'B.Com': {
-    name: 'B.Com (Bachelor of Commerce)',
-    duration: '3 Years (6 Semesters)',
-    eligibility: '10+2 with minimum 45% marks from recognized board',
-    seats: 120,
-    registrationFee: 10000,
-    feePerYear: 55000,
-    totalFee: 165000,
-    feeStructure: [
-      { year: '1st Year', amount: 55000 },
-      { year: '2nd Year', amount: 55000 },
-      { year: '3rd Year', amount: 55000 }
-    ],
-    affiliation: 'CCS University, Meerut',
-    highlights: ['Tally Training', 'GST Certification', 'Industry Exposure', 'Soft Skills Development']
-  },
-  'B.A.B.Ed': {
-    name: 'B.A.B.Ed (Bachelor of Arts & Education)',
-    duration: '4 Years (8 Semesters)',
-    eligibility: '10+2 with minimum 50% marks',
-    seats: 100,
-    registrationFee: 10000,
-    feePerYear: 110000,
-    totalFee: 440000,
-    feeStructure: [
-      { year: '1st Year', amount: 110000 },
-      { year: '2nd Year', amount: 110000 },
-      { year: '3rd Year', amount: 110000 },
-      { year: '4th Year', amount: 110000 }
-    ],
-    affiliation: 'CCS University, Meerut',
-    highlights: ['NCTE Approved', 'Integrated Curriculum', 'Teaching Practice', 'School Internship']
-  }
-};
-
 export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName }: CourseDetailModalProps) {
   const { user, userData } = useAuth();
   const [showEnquiryForm, setShowEnquiryForm] = useState(false);
@@ -350,30 +21,68 @@ export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName
 
   const userName = userData?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Guest';
   
-  // Get course data based on college name
-  let courseData;
-  if (collegeName?.includes('Mangalmay')) {
-    courseData = mangalmayCoursesData[course?.name];
-  } else {
-    courseData = gnGroupCoursesData[course?.key || course?.name];
-  }
-  
-  if (!courseData) return null;
+  if (!course) return null;
 
-  const collegeDisplayName = collegeName?.includes('Mangalmay') ? 'Mangalmay Group of Institutions' : 'GN Group of Institutions';
+  const formatFee = (fee: any) => {
+    if (typeof fee === 'number') return `₹${fee.toLocaleString('en-IN')}`;
+    return fee || 'Contact for details';
+  };
+
+  // Get fee structure (yearly)
+  const getFeeStructure = () => {
+    if (course.feeStructure && Array.isArray(course.feeStructure) && course.feeStructure.length > 0) {
+      return course.feeStructure;
+    }
+    const years = course.duration?.match(/\d+/)?.[0] || '4';
+    const numYears = parseInt(years);
+    const feePerYear = typeof course.feePerYear === 'number' ? course.feePerYear : 0;
+    
+    const yearNames = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year', '6th Year'];
+    return Array.from({ length: numYears }, (_, i) => ({
+      year: yearNames[i] || `${i + 1} Year`,
+      amount: feePerYear
+    }));
+  };
+
+  // Get semester-wise fee structure
+  const getSemesterFeeStructure = () => {
+    if (course.feeStructureSemester && Array.isArray(course.feeStructureSemester) && course.feeStructureSemester.length > 0) {
+      return course.feeStructureSemester;
+    }
+    return null;
+  };
+
+  const feeStructure = getFeeStructure();
+  const semesterFeeStructure = getSemesterFeeStructure();
+  const totalFee = course.totalFee || feeStructure.reduce((sum: number, item: any) => sum + (item.amount || 0), 0);
+  const registrationFee = course.registrationFee || 10000;
 
   const handleChatWithExpert = () => {
-    const message = `👋 Hello! I'm interested in ${courseData.name} at ${collegeDisplayName}. Can you guide me about admission process and fee structure?`;
+    const message = `👋 Hello! I'm interested in ${course.name} at ${collegeName}. Can you guide me about admission process and fee structure?`;
     window.open(`https://wa.me/918796033021?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   const handleEnquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
+    const whatsappMessage = `📬 *New Application - ${collegeName}*
+    
+🎓 *Course:* ${course.name}
+👤 *Name:* ${enquiryData.name}
+📞 *Phone:* ${enquiryData.phone}
+📧 *Email:* ${enquiryData.email}
+💬 *Message:* ${enquiryData.message || 'No message'}
+⏰ *Time:* ${new Date().toLocaleString()}`;
+    
+    const encodedMessage = encodeURIComponent(whatsappMessage);
+    window.open(`https://wa.me/918796033021?text=${encodedMessage}`, '_blank');
+    
     setTimeout(() => {
       setIsSubmitting(false);
       setShowEnquiryForm(false);
-      alert(`Application submitted for ${courseData.name} at ${collegeDisplayName}! We will contact you soon.`);
+      setEnquiryData({ name: '', phone: '', email: '', message: '' });
+      alert(`Application submitted for ${course.name} at ${collegeName}! We will contact you soon.`);
     }, 1000);
   };
 
@@ -413,6 +122,7 @@ export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName
             </div>
 
             <div className="px-6 pb-6">
+              {/* Greeting */}
               <div className="mb-6 mt-4">
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-100">
                   <div className="flex items-center gap-2">
@@ -422,84 +132,153 @@ export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 mt-1">
-                    You're exploring <span className="font-semibold text-purple-600">{courseData.name}</span> at {collegeDisplayName}
+                    You're exploring <span className="font-semibold text-purple-600">{course.name}</span> at {collegeName}
                   </p>
                 </div>
               </div>
 
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">{courseData.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">{course.name}</h1>
               
+              {/* Course Meta Info */}
               <div className="flex flex-wrap gap-4 mb-6 text-sm">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Clock className="w-4 h-4 text-purple-600" />
-                  <span>{courseData.duration}</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Users className="w-4 h-4 text-purple-600" />
-                  <span>Seats: {courseData.seats}</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Award className="w-4 h-4 text-purple-600" />
-                  <span>{courseData.affiliation}</span>
-                </div>
+                {course.duration && course.duration !== 'Contact for details' && (
+                  <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+                    <Clock className="w-4 h-4 text-purple-600" />
+                    <span>{course.duration}</span>
+                  </div>
+                )}
+                {course.university && (
+                  <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+                    <University className="w-4 h-4 text-purple-600" />
+                    <span>{course.university}</span>
+                  </div>
+                )}
+                {course.seats && course.seats !== 'Contact for details' && (
+                  <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+                    <Users className="w-4 h-4 text-purple-600" />
+                    <span>Seats: {course.seats}</span>
+                  </div>
+                )}
+                {course.category && (
+                  <div className="flex items-center gap-2 text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+                    <Award className="w-4 h-4 text-purple-600" />
+                    <span className="capitalize">{course.category}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="bg-blue-50 rounded-xl p-4 mb-6">
-                <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                  <GraduationCap className="w-4 h-4 text-blue-600" />
-                  Eligibility Criteria
-                </h3>
-                <p className="text-sm text-gray-600">{courseData.eligibility}</p>
-              </div>
+              {/* Eligibility */}
+              {course.eligibility && course.eligibility !== 'Contact for details' && (
+                <div className="bg-blue-50 rounded-xl p-4 mb-6">
+                  <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-blue-600" />
+                    Eligibility Criteria
+                  </h3>
+                  <p className="text-sm text-gray-600">{course.eligibility}</p>
+                </div>
+              )}
 
+              {/* Year-wise Fee Structure */}
               <div className="mb-6">
                 <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   <IndianRupee className="w-4 h-4 text-green-600" />
                   Fee Structure
                 </h3>
+                
+                {/* Registration Fee */}
+                <div className="bg-green-50 rounded-lg p-3 mb-3 border border-green-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 font-medium">Registration Fee</span>
+                    <span className="font-bold text-green-700">{formatFee(registrationFee)}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">One Time Payment (Non-refundable)</p>
+                </div>
+
+                {/* Year-wise Table */}
                 <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
                   <table className="w-full text-sm">
-                    <tbody>
-                      <tr className="border-b border-gray-200">
-                        <td className="px-4 py-3 text-gray-600">Registration Fee</td>
-                        <td className="px-4 py-3 font-semibold text-gray-900">₹{courseData.registrationFee.toLocaleString()}</td>
-                        <td className="px-4 py-3 text-xs text-gray-400">One Time</td>
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Year</th>
+                        <th className="px-4 py-3 text-right font-semibold text-gray-700">Amount</th>
                       </tr>
-                      {courseData.feeStructure.map((item: any, idx: number) => (
+                    </thead>
+                    <tbody>
+                      {feeStructure.map((item: any, idx: number) => (
                         <tr key={idx} className="border-b border-gray-200">
-                          <td className="px-4 py-3 text-gray-600">{item.year} Fee</td>
-                          <td className="px-4 py-3 font-semibold text-gray-900">₹{item.amount.toLocaleString()}</td>
-                          <td className="px-4 py-3 text-xs text-gray-400">Yearly</td>
+                          <td className="px-4 py-3 text-gray-600">{item.year}</td>
+                          <td className="px-4 py-3 text-right font-semibold text-purple-600">
+                            {formatFee(item.amount)}
+                          </td>
                         </tr>
                       ))}
                       <tr className="bg-purple-50">
                         <td className="px-4 py-3 font-semibold text-gray-800">Total Fee</td>
-                        <td className="px-4 py-3 font-bold text-purple-600">₹{courseData.totalFee.toLocaleString()}</td>
-                        <td className="px-4 py-3 text-xs text-gray-500">+ Registration</td>
+                        <td className="px-4 py-3 text-right font-bold text-purple-700 text-lg">
+                          {formatFee(totalFee)}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
-                <p className="text-xs text-gray-400 mt-2">
-                  * University examination fee & enrolment charges to be paid separately as per university guidelines.
+              </div>
+
+              {/* Semester-wise Fee Structure (if available) */}
+              {semesterFeeStructure && semesterFeeStructure.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-blue-600" />
+                    Semester-wise Fee Breakup
+                  </h3>
+                  <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-4 py-2 text-left font-semibold text-gray-700">Semester</th>
+                          <th className="px-4 py-2 text-right font-semibold text-gray-700">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {semesterFeeStructure.map((item: any, idx: number) => (
+                          <tr key={idx} className="border-b border-gray-200">
+                            <td className="px-4 py-2 text-gray-600">{item.semester}</td>
+                            <td className="px-4 py-2 text-right font-semibold text-purple-600">
+                              {formatFee(item.amount)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Program Highlights */}
+              {course.highlights && course.highlights.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
+                    Program Highlights
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {course.highlights.map((highlight: string, idx: number) => (
+                      <div key={idx} className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 p-2 rounded-lg">
+                        <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        <span>{highlight}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Note */}
+              <div className="bg-yellow-50 rounded-lg p-3 mb-6">
+                <p className="text-xs text-gray-600">
+                  📌 <span className="font-semibold">Note:</span> University examination fee & enrolment charges to be paid separately as per university guidelines. EMI options available. Scholarships up to ₹60,000 for meritorious students.
                 </p>
               </div>
 
-              <div className="mb-6">
-                <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  Program Highlights
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {courseData.highlights.map((highlight: string, idx: number) => (
-                    <div key={idx} className="flex items-center gap-2 text-sm text-gray-600">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span>{highlight}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
+              {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() => setShowEnquiryForm(true)}
@@ -521,6 +300,7 @@ export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName
         </>
       )}
 
+      {/* Enquiry Form Modal */}
       <AnimatePresence>
         {showEnquiryForm && (
           <motion.div
@@ -538,7 +318,7 @@ export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-gray-900">Apply for {courseData.name}</h3>
+                <h3 className="text-xl font-bold text-gray-900">Apply for {course?.name}</h3>
                 <button onClick={() => setShowEnquiryForm(false)} className="text-gray-400 hover:text-gray-600">
                   <X className="w-5 h-5" />
                 </button>
@@ -582,6 +362,9 @@ export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit Application'}
                 </button>
+                <p className="text-xs text-gray-400 text-center">
+                  You'll receive confirmation on WhatsApp within 24 hours
+                </p>
               </form>
             </motion.div>
           </motion.div>

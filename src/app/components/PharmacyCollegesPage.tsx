@@ -3,7 +3,7 @@ import { MapPin, Star, Users, Award, ArrowRight, Search, TrendingUp, Sparkles, F
 import { motion, AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { colleges } from './CollegesPage';
+
 
 export function PharmacyCollegesPage() {
   const navigate = useNavigate();
