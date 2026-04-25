@@ -29,18 +29,16 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
   const [savingLoading, setSavingLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   
-  // Courses from Firebase
   const [collegeCourses, setCollegeCourses] = useState<any[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
 
   const userName = userData?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Guest';
 
-  const showToast = (message: string, type: 'success' | 'error') => {
+  const showToastMessage = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Fetch courses for this college from Firebase
   const fetchCollegeCourses = async () => {
     if (!college?.id) return;
     
@@ -65,7 +63,6 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
     }
   };
 
-  // Fetch applied courses for this college
   const fetchAppliedCourses = async () => {
     if (!user?.uid || !college?.id) return;
     
@@ -87,7 +84,6 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
     }
   };
 
-  // Check if college is saved
   const checkIfSaved = async () => {
     if (!user?.uid || !college?.id) return;
     try {
@@ -98,10 +94,9 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
     }
   };
 
-  // Handle save college
   const handleSaveCollege = async () => {
     if (!user?.uid) {
-      showToast('Please login to save colleges', 'error');
+      showToastMessage('Please login to save colleges', 'error');
       return;
     }
     
@@ -114,7 +109,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
         if (!snapshot.empty) {
           await removeSavedCollege(snapshot.docs[0].id);
           setIsSaved(false);
-          showToast('College removed from saved list', 'success');
+          showToastMessage('College removed from saved list', 'success');
         }
       } else {
         await saveCollege(user.uid, {
@@ -126,16 +121,15 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
           image: college.image
         });
         setIsSaved(true);
-        showToast('College saved successfully', 'success');
+        showToastMessage('College saved successfully', 'success');
       }
     } catch (err) {
       console.error('Error saving college:', err);
-      showToast('Failed to save college', 'error');
+      showToastMessage('Failed to save college', 'error');
     }
     setSavingLoading(false);
   };
 
-  // Auto-hide toast after 2 seconds
   useEffect(() => {
     if (showAlreadyAppliedToast) {
       const timer = setTimeout(() => {
@@ -145,7 +139,6 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
     }
   }, [showAlreadyAppliedToast]);
 
-  // Call when modal opens
   useEffect(() => {
     if (isOpen && college?.id) {
       fetchCollegeCourses();
@@ -158,12 +151,10 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
 
   if (!isOpen || !college) return null;
 
-  // Get courses list for display
   const getCoursesList = () => {
     return collegeCourses.map(course => course.name);
   };
 
-  // Handle course click
   const handleCourseClick = (courseName: string) => {
     const courseData = collegeCourses.find(c => c.name === courseName);
     if (courseData) {
@@ -191,64 +182,38 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
     document.body.removeChild(link);
   };
 
-  // Helper function to format currency
   const formatCurrency = (amount: number) => {
     if (!amount || amount === 0) return 'Contact for details';
     return `₹${amount.toLocaleString('en-IN')}`;
   };
 
-  // Get duration in years
-  const getDurationYears = (duration: string) => {
-    if (!duration) return 4;
-    const match = duration.match(/\d+/);
-    return match ? parseInt(match[0]) : 4;
+  const getYearWiseFees = (course: any) => {
+    if (course.yearWiseFees && Array.isArray(course.yearWiseFees) && course.yearWiseFees.length > 0) {
+      return course.yearWiseFees;
+    }
+    return null;
   };
 
-  // Generate fee structure from years
-  const generateFeeStructure = (course: any) => {
-    // If feeStructure already exists in database, use it
-    if (course.feeStructure && Array.isArray(course.feeStructure) && course.feeStructure.length > 0) {
-      return course.feeStructure;
-    }
-    
-    // Otherwise generate from feePerYear and duration
-    const years = getDurationYears(course.duration);
-    const feePerYear = typeof course.feePerYear === 'number' ? course.feePerYear : 0;
-    const feeStructure = [];
-    
-    const yearNames = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year', '6th Year'];
-    for (let i = 0; i < years; i++) {
-      feeStructure.push({
-        year: yearNames[i] || `${i + 1} Year`,
-        amount: feePerYear
-      });
-    }
-    
-    return feeStructure;
-  };
-
-  // Calculate total fee
-  const calculateTotalFee = (course: any) => {
+  const getTotalFee = (course: any) => {
     if (course.totalFee && typeof course.totalFee === 'number' && course.totalFee > 0) {
       return course.totalFee;
     }
-    
-    const years = getDurationYears(course.duration);
-    const feePerYear = typeof course.feePerYear === 'number' ? course.feePerYear : 0;
-    return feePerYear * years;
+    return 0;
   };
 
-  // ✅ UPDATED: Render fee structure properly
   const renderFeeStructure = () => {
     if (loadingCourses) {
-      return <div className="text-center py-4">Loading fee structure...</div>;
+      return (
+        <div className="text-center py-8">
+          <div className="animate-spin w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full mx-auto" />
+        </div>
+      );
     }
     
     if (collegeCourses.length === 0) {
-      return <div className="text-center py-4 text-gray-500">No courses available</div>;
+      return <div className="text-center py-8 text-gray-500">No courses available</div>;
     }
     
-    // Get registration fee from first course
     const registrationFee = collegeCourses[0]?.registrationFee || 10000;
     
     return (
@@ -265,9 +230,9 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
         
         {/* Course-wise Fee Structure */}
         {collegeCourses.map((course) => {
-          const feeStructure = generateFeeStructure(course);
-          const totalFee = calculateTotalFee(course);
-          const hasValidFee = feeStructure.some(f => f.amount > 0);
+          const yearWiseFees = getYearWiseFees(course);
+          const totalFee = getTotalFee(course);
+          const hasYearWiseFees = yearWiseFees && yearWiseFees.length > 0;
           
           return (
             <div key={course.id} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
@@ -278,35 +243,46 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                 )}
               </div>
               
-              {hasValidFee ? (
-                <div className="space-y-2">
-                  {feeStructure.map((item: any, idx: number) => (
-                    <div key={idx} className="flex justify-between items-center py-1">
-                      <span className="text-sm text-gray-600">{item.year}</span>
-                      <span className="font-semibold text-purple-600">
-                        {formatCurrency(item.amount)}
+              {hasYearWiseFees ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {yearWiseFees.map((yearFee: any) => (
+                      <div key={yearFee.year} className="bg-purple-50 rounded-lg p-3 text-center border border-purple-100">
+                        <p className="text-xs text-gray-500">Year {yearFee.year}</p>
+                        <p className="text-base font-bold text-purple-600">
+                          {formatCurrency(yearFee.amount)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {totalFee > 0 && (
+                    <div className="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-200">
+                      <span className="text-sm font-semibold text-gray-800">Total Course Fee</span>
+                      <span className="font-bold text-purple-700 text-lg">
+                        {formatCurrency(totalFee)}
                       </span>
                     </div>
-                  ))}
-                  
-                  <div className="flex justify-between items-center pt-2 mt-2 border-t border-dashed border-gray-200">
-                    <span className="text-sm font-semibold text-gray-800">Total Fee</span>
-                    <span className="font-bold text-purple-700 text-lg">
-                      {formatCurrency(totalFee)}
-                    </span>
-                  </div>
+                  )}
                 </div>
               ) : (
-                <div className="text-center py-3 text-gray-500">
+                <div className="text-center py-4 text-gray-500">
                   <p className="text-sm">Fee structure not available</p>
                   <button 
-                    onClick={() => handleChatWithExpert()}
+                    onClick={handleChatWithExpert}
                     className="mt-2 text-xs text-purple-600 hover:text-purple-700"
                   >
                     Contact for details →
                   </button>
                 </div>
               )}
+              
+              <button
+                onClick={() => handleCourseClick(course.name)}
+                className="mt-3 text-purple-600 text-sm font-medium hover:text-purple-700 flex items-center gap-1"
+              >
+                View Complete Details <ChevronRight className="w-3 h-3" />
+              </button>
             </div>
           );
         })}
@@ -326,7 +302,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
 
   return (
     <>
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {isOpen && (
           <>
             <motion.div
@@ -360,6 +336,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -50 }}
                       className="fixed top-20 right-4 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 text-white text-sm"
+                      style={{ backgroundColor: toast.type === 'success' ? '#22c55e' : '#ef4444' }}
                     >
                       {toast.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                       {toast.message}

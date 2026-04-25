@@ -23,38 +23,21 @@ export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName
   
   if (!course) return null;
 
-  const formatFee = (fee: any) => {
-    if (typeof fee === 'number') return `₹${fee.toLocaleString('en-IN')}`;
-    return fee || 'Contact for details';
+  const formatCurrency = (amount: number) => {
+    if (!amount || amount === 0) return 'Contact for details';
+    return `₹${amount.toLocaleString('en-IN')}`;
   };
 
-  // Get fee structure (yearly)
-  const getFeeStructure = () => {
-    if (course.feeStructure && Array.isArray(course.feeStructure) && course.feeStructure.length > 0) {
-      return course.feeStructure;
-    }
-    const years = course.duration?.match(/\d+/)?.[0] || '4';
-    const numYears = parseInt(years);
-    const feePerYear = typeof course.feePerYear === 'number' ? course.feePerYear : 0;
-    
-    const yearNames = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year', '6th Year'];
-    return Array.from({ length: numYears }, (_, i) => ({
-      year: yearNames[i] || `${i + 1} Year`,
-      amount: feePerYear
-    }));
-  };
-
-  // Get semester-wise fee structure
-  const getSemesterFeeStructure = () => {
-    if (course.feeStructureSemester && Array.isArray(course.feeStructureSemester) && course.feeStructureSemester.length > 0) {
-      return course.feeStructureSemester;
+  // ✅ Get year-wise fees from course data
+  const getYearWiseFees = () => {
+    if (course.yearWiseFees && Array.isArray(course.yearWiseFees) && course.yearWiseFees.length > 0) {
+      return course.yearWiseFees;
     }
     return null;
   };
 
-  const feeStructure = getFeeStructure();
-  const semesterFeeStructure = getSemesterFeeStructure();
-  const totalFee = course.totalFee || feeStructure.reduce((sum: number, item: any) => sum + (item.amount || 0), 0);
+  const yearWiseFees = getYearWiseFees();
+  const totalFee = course.totalFee || (yearWiseFees ? yearWiseFees.reduce((sum: number, y: any) => sum + (y.amount || 0), 0) : 0);
   const registrationFee = course.registrationFee || 10000;
 
   const handleChatWithExpert = () => {
@@ -87,7 +70,7 @@ export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName
   };
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isOpen && (
         <>
           <motion.div
@@ -178,7 +161,7 @@ export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName
                 </div>
               )}
 
-              {/* Year-wise Fee Structure */}
+              {/* ✅ YEAR-WISE FEE STRUCTURE */}
               <div className="mb-6">
                 <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   <IndianRupee className="w-4 h-4 text-green-600" />
@@ -186,72 +169,54 @@ export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName
                 </h3>
                 
                 {/* Registration Fee */}
-                <div className="bg-green-50 rounded-lg p-3 mb-3 border border-green-200">
+                <div className="bg-green-50 rounded-lg p-3 mb-4 border border-green-200">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-700 font-medium">Registration Fee</span>
-                    <span className="font-bold text-green-700">{formatFee(registrationFee)}</span>
+                    <span className="font-bold text-green-700">{formatCurrency(registrationFee)}</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">One Time Payment (Non-refundable)</p>
+                  <p className="text-xs text-gray-500 mt-1">One Time Payment (Refundable)</p>
                 </div>
 
-                {/* Year-wise Table */}
-                <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-semibold text-gray-700">Year</th>
-                        <th className="px-4 py-3 text-right font-semibold text-gray-700">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {feeStructure.map((item: any, idx: number) => (
-                        <tr key={idx} className="border-b border-gray-200">
-                          <td className="px-4 py-3 text-gray-600">{item.year}</td>
-                          <td className="px-4 py-3 text-right font-semibold text-purple-600">
-                            {formatFee(item.amount)}
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="bg-purple-50">
-                        <td className="px-4 py-3 font-semibold text-gray-800">Total Fee</td>
-                        <td className="px-4 py-3 text-right font-bold text-purple-700 text-lg">
-                          {formatFee(totalFee)}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                {/* Year-wise Fee Grid */}
+                {yearWiseFees && yearWiseFees.length > 0 ? (
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
+                      <div className="bg-gray-100 px-4 py-3 border-b border-gray-200">
+                        <h4 className="font-semibold text-gray-700">Year-wise Fee Breakdown</h4>
+                      </div>
+                      <div className="p-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {yearWiseFees.map((yearFee: any) => (
+                            <div key={yearFee.year} className="bg-purple-50 rounded-lg p-3 text-center border border-purple-100">
+                              <p className="text-xs text-gray-500">Year {yearFee.year}</p>
+                              <p className="text-lg font-bold text-purple-600">
+                                {formatCurrency(yearFee.amount)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {totalFee > 0 && (
+                          <div className="mt-4 pt-3 border-t border-gray-200 flex justify-between items-center">
+                            <span className="font-semibold text-gray-800">Total Course Fee</span>
+                            <span className="text-xl font-bold text-purple-700">{formatCurrency(totalFee)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-xl p-6 text-center text-gray-500">
+                    <p>Detailed fee structure not available</p>
+                    <button 
+                      onClick={handleChatWithExpert}
+                      className="mt-2 text-purple-600 text-sm hover:text-purple-700"
+                    >
+                      Contact for details →
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {/* Semester-wise Fee Structure (if available) */}
-              {semesterFeeStructure && semesterFeeStructure.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-blue-600" />
-                    Semester-wise Fee Breakup
-                  </h3>
-                  <div className="bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th className="px-4 py-2 text-left font-semibold text-gray-700">Semester</th>
-                          <th className="px-4 py-2 text-right font-semibold text-gray-700">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {semesterFeeStructure.map((item: any, idx: number) => (
-                          <tr key={idx} className="border-b border-gray-200">
-                            <td className="px-4 py-2 text-gray-600">{item.semester}</td>
-                            <td className="px-4 py-2 text-right font-semibold text-purple-600">
-                              {formatFee(item.amount)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
 
               {/* Program Highlights */}
               {course.highlights && course.highlights.length > 0 && (
@@ -268,6 +233,29 @@ export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Specializations */}
+              {course.specializations && course.specializations.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-gray-800 mb-2">Specializations</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {course.specializations.map((spec: string, idx: number) => (
+                      <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                        {spec}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Exam Accepted */}
+              {course.examAccepted && (
+                <div className="flex items-center gap-2 text-sm text-gray-600 bg-orange-50 p-3 rounded-lg mb-6">
+                  <Award className="w-4 h-4 text-orange-600" />
+                  <span className="font-medium">Exam Accepted:</span>
+                  <span>{course.examAccepted}</span>
                 </div>
               )}
 
@@ -358,7 +346,7 @@ export function CourseDetailModal({ isOpen, onClose, onBack, course, collegeName
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold"
+                  className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition"
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit Application'}
                 </button>
