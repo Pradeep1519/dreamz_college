@@ -115,11 +115,11 @@ const affiliationByCategory: Record<string, string[]> = {
 // Category-wise Eligibility
 const eligibilityByCategory: Record<string, string[]> = {
   engineering: ["10+2 with PCM with minimum 45% marks. Valid JEE Main/CUET score.","Bachelor's degree in relevant field for lateral entry.","Bachelor's degree with 50% marks for PG courses."],
-  management: ["10+2 with minimum 50% marks from any recognized board."],
-  pharmacy: ["10+2 with PCB/PCM with minimum 50% marks."],
+  management: ["10+2 with minimum 50% marks from any recognized board.","Graduation in any discipline with minimum 50% marks. Valid CAT/MAT/CMAT score for MBA.","Postgraduate degree with minimum 50% marks for PGDM."],
+  pharmacy: ["10+2 with PCB/PCM with minimum 50% marks.", "Bachelor's degree in Pharmacy (B.Pharm) with minimum 50% marks for M.Pharm.", "Valid GPAT score for M.Pharm."],
   nursing: ["10+2 with PCB with minimum 45% marks. Minimum age 17 years."],
-  law: ["10+2 with minimum 45% marks. Valid CLAT/AILET score."],
-  general: ["10+2 pass from any recognized board with minimum 45% marks."]
+  law: ["10+2 with minimum 45% marks. Valid CLAT/AILET score.", "Graduation in any discipline with minimum 45% marks for 3-year LLB. Valid CLAT/AILET score.", "Postgraduate degree with minimum 45% marks for LLM. Valid CLAT PG score."],
+  general: ["10+2 pass from any recognized board with minimum 45% marks.", "Graduation in any discipline with minimum 45% marks.", "Postgraduate degree with minimum 45% marks."]
 };
 
 export function CourseManagement() {
