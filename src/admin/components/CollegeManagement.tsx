@@ -6,16 +6,19 @@ import {
   Building, Plus, Edit, Trash2, Eye, Search, 
   X, CheckCircle, AlertCircle, RefreshCw, Download,
   MapPin, Star, Users, TrendingUp, GraduationCap,
-  Image, Upload, FileText, Save
+  Image, Upload, FileText, Save, Copy, ChevronDown,
+  Award, Wifi, Car, Coffee, Library, Home, Activity,
+  Calendar, Medal, Hash, FileSignature
 } from 'lucide-react';
 import { db } from '../../lib/firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, setDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../lib/firebase';
 
 interface College {
   id: string;
   name: string;
+  fullName?: string;
   location: string;
   rating: number;
   students: string;
@@ -26,9 +29,28 @@ interface College {
   placementRate: string;
   fees: string;
   about?: string;
+  description?: string;
   established?: string;
   accreditation?: string[];
+  facilities?: string[];
+  nirfRank?: string;
 }
+
+// Pre-defined options for dropdowns
+const accreditationOptions = [
+  "NAAC A+", "NAAC A", "NAAC A++", "NBA Accredited", "NIRF Rank 86",
+  "NIRF Rank 101-150", "NIRF Rank 151-200", "QS Asia Ranking", 
+  "ASIC UK", "ACBSP", "IET UK", "AICTE Approved", "UGC Recognized",
+  "PCI Approved", "INC Approved", "BCI Approved", "NCTE Approved"
+];
+
+const facilityOptions = [
+  "Smart Classrooms", "Apple iMac Lab", "NVIDIA AI Lab", "Digital Library",
+  "Hostel", "Sports Complex", "Wi-Fi Campus", "Auditorium", "Incubation Center",
+  "Research Labs", "Cafeteria", "Transport Facility", "Medical Facility",
+  "Gymnasium", "Bank/ATM", "Moot Court", "Shooting Range", "Horse Riding Academy",
+  "Swimming Pool", "Tennis Courts", "24/7 Security", "Medical Facility", "Cafeteria"
+];
 
 export function CollegeManagement() {
   const [colleges, setColleges] = useState<College[]>([]);
@@ -36,8 +58,11 @@ export function CollegeManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCollege, setEditingCollege] = useState<College | null>(null);
+  const [customId, setCustomId] = useState('');
+  
   const [formData, setFormData] = useState<Partial<College>>({
     name: '',
+    fullName: '',
     location: '',
     rating: 4.0,
     students: '',
@@ -48,18 +73,40 @@ export function CollegeManagement() {
     placementRate: '',
     fees: '',
     about: '',
+    description: '',
     established: '',
-    accreditation: []
+    accreditation: [],
+    facilities: [],
+    nirfRank: ''
   });
+  
   const [courseInput, setCourseInput] = useState('');
   const [accreditationInput, setAccreditationInput] = useState('');
+  const [facilityInput, setFacilityInput] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  
+  // Dropdown states
+  const [showAccreditationDropdown, setShowAccreditationDropdown] = useState(false);
+  const [showFacilityDropdown, setShowFacilityDropdown] = useState(false);
+  const [accreditationSearch, setAccreditationSearch] = useState('');
+  const [facilitySearch, setFacilitySearch] = useState('');
 
   useEffect(() => {
     fetchColleges();
   }, []);
+
+  // Generate custom ID suggestion from college name
+  useEffect(() => {
+    if (formData.name && !editingCollege) {
+      const suggestedId = formData.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+      setCustomId(suggestedId);
+    }
+  }, [formData.name, editingCollege]);
 
   const fetchColleges = async () => {
     setLoading(true);
@@ -103,8 +150,23 @@ export function CollegeManagement() {
       }
 
       const collegeData = {
-        ...formData,
+        name: formData.name,
+        fullName: formData.fullName || formData.name,
+        location: formData.location,
+        rating: formData.rating || 4.0,
+        students: formData.students || '',
+        type: formData.type || '',
         image: imageUrl,
+        courses: formData.courses || [],
+        highestPackage: formData.highestPackage || '',
+        placementRate: formData.placementRate || '',
+        fees: formData.fees || '',
+        about: formData.about || formData.description || '',
+        description: formData.description || formData.about || '',
+        established: formData.established || '',
+        accreditation: formData.accreditation || [],
+        facilities: formData.facilities || [],
+        nirfRank: formData.nirfRank || '',
         updatedAt: new Date().toISOString()
       };
 
@@ -113,17 +175,21 @@ export function CollegeManagement() {
         await updateDoc(collegeRef, collegeData);
         showToast('College updated successfully', 'success');
       } else {
-        await addDoc(collection(db, 'colleges'), {
+        // ✅ Use setDoc with custom readable ID
+        const finalId = customId || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        await setDoc(doc(db, 'colleges', finalId), {
           ...collegeData,
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          id: finalId
         });
-        showToast('College added successfully', 'success');
+        showToast(`College added! ID: ${finalId}`, 'success');
       }
 
       setIsModalOpen(false);
       resetForm();
       fetchColleges();
     } catch (error) {
+      console.error('Error:', error);
       showToast('Failed to save college', 'error');
     } finally {
       setUploading(false);
@@ -146,6 +212,7 @@ export function CollegeManagement() {
     setEditingCollege(null);
     setFormData({
       name: '',
+      fullName: '',
       location: '',
       rating: 4.0,
       students: '',
@@ -156,11 +223,16 @@ export function CollegeManagement() {
       placementRate: '',
       fees: '',
       about: '',
+      description: '',
       established: '',
-      accreditation: []
+      accreditation: [],
+      facilities: [],
+      nirfRank: ''
     });
+    setCustomId('');
     setCourseInput('');
     setAccreditationInput('');
+    setFacilityInput('');
     setImageFile(null);
   };
 
@@ -181,13 +253,27 @@ export function CollegeManagement() {
     });
   };
 
-  const addAccreditation = () => {
-    if (accreditationInput.trim()) {
+  const toggleAccreditation = (opt: string) => {
+    if (formData.accreditation?.includes(opt)) {
       setFormData({
         ...formData,
-        accreditation: [...(formData.accreditation || []), accreditationInput.trim()]
+        accreditation: formData.accreditation?.filter(a => a !== opt)
       });
-      setAccreditationInput('');
+    } else {
+      setFormData({
+        ...formData,
+        accreditation: [...(formData.accreditation || []), opt]
+      });
+    }
+  };
+
+  const addCustomAccreditation = () => {
+    if (accreditationSearch.trim() && !formData.accreditation?.includes(accreditationSearch.trim())) {
+      setFormData({
+        ...formData,
+        accreditation: [...(formData.accreditation || []), accreditationSearch.trim()]
+      });
+      setAccreditationSearch('');
     }
   };
 
@@ -198,9 +284,47 @@ export function CollegeManagement() {
     });
   };
 
+  const toggleFacility = (opt: string) => {
+    if (formData.facilities?.includes(opt)) {
+      setFormData({
+        ...formData,
+        facilities: formData.facilities?.filter(f => f !== opt)
+      });
+    } else {
+      setFormData({
+        ...formData,
+        facilities: [...(formData.facilities || []), opt]
+      });
+    }
+  };
+
+  const addCustomFacility = () => {
+    if (facilitySearch.trim() && !formData.facilities?.includes(facilitySearch.trim())) {
+      setFormData({
+        ...formData,
+        facilities: [...(formData.facilities || []), facilitySearch.trim()]
+      });
+      setFacilitySearch('');
+    }
+  };
+
+  const removeFacility = (index: number) => {
+    setFormData({
+      ...formData,
+      facilities: formData.facilities?.filter((_, i) => i !== index)
+    });
+  };
+
+  const filteredAccreditations = accreditationOptions.filter(opt =>
+    opt.toLowerCase().includes(accreditationSearch.toLowerCase())
+  );
+  const filteredFacilities = facilityOptions.filter(opt =>
+    opt.toLowerCase().includes(facilitySearch.toLowerCase())
+  );
+
   const filteredColleges = colleges.filter(college =>
     college.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    college.location.toLowerCase().includes(searchTerm.toLowerCase())
+    college.location?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -222,10 +346,10 @@ export function CollegeManagement() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">College Management</h2>
-          <p className="text-sm text-gray-500">Manage all colleges in your platform</p>
+          <h2 className="text-xl font-semibold text-gray-900">🏛️ College Management</h2>
+          <p className="text-sm text-gray-500">Manage colleges with readable IDs and all fields</p>
         </div>
         <button
           onClick={() => {
@@ -278,6 +402,7 @@ export function CollegeManagement() {
                     onClick={() => {
                       setEditingCollege(college);
                       setFormData(college);
+                      setCustomId(college.id);
                       setIsModalOpen(true);
                     }}
                     className="p-1.5 bg-white/90 rounded-lg hover:bg-white transition-colors"
@@ -326,12 +451,7 @@ export function CollegeManagement() {
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                   <span className="text-sm font-semibold text-purple-600">{college.fees?.split('-')[0]}</span>
-                  <button
-                    onClick={() => window.open(`/college/${college.id}`, '_blank')}
-                    className="text-xs text-purple-600 hover:text-purple-700"
-                  >
-                    View Details →
-                  </button>
+                  <code className="text-xs text-gray-400">{college.id}</code>
                 </div>
               </div>
             </motion.div>
@@ -347,12 +467,12 @@ export function CollegeManagement() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
+              className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-gray-900">
-                  {editingCollege ? 'Edit College' : 'Add New College'}
+                  {editingCollege ? '✏️ Edit College' : '➕ Add New College'}
                 </h3>
                 <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                   <X className="w-5 h-5" />
@@ -360,8 +480,25 @@ export function CollegeManagement() {
               </div>
 
               <div className="space-y-4">
+                {/* Custom ID Field - NEW */}
+                {!editingCollege && (
+                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                    <label className="block text-sm font-medium mb-1 flex items-center gap-2">
+                      <Copy className="w-4 h-4 text-blue-600" /> Document ID (Readable)
+                    </label>
+                    <input
+                      type="text"
+                      value={customId}
+                      onChange={(e) => setCustomId(e.target.value)}
+                      placeholder="Leave empty for auto"
+                      className="w-full px-4 py-2 border rounded-lg font-mono text-sm bg-white"
+                    />
+                    <p className="text-xs text-blue-500 mt-1">💡 Suggested: {formData.name?.toLowerCase().replace(/[^a-z0-9]+/g, '-')}</p>
+                  </div>
+                )}
+
                 {/* Basic Info */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">College Name *</label>
                     <input
@@ -372,17 +509,41 @@ export function CollegeManagement() {
                     />
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name (Optional)</label>
+                    <input
+                      type="text"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      placeholder="e.g., Amity University Greater Noida Campus"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Location *</label>
                     <input
                       type="text"
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="e.g., Greater Noida, Uttar Pradesh"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">College Type</label>
+                    <input
+                      type="text"
+                      value={formData.type}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                      placeholder="e.g., Engineering, Management, Multi-Discipline"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
                     <input
@@ -390,55 +551,202 @@ export function CollegeManagement() {
                       step="0.1"
                       value={formData.rating}
                       onChange={(e) => setFormData({ ...formData, rating: parseFloat(e.target.value) })}
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg"
                     />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">NIRF Rank</label>
+                    <input
+                      type="text"
+                      value={formData.nirfRank}
+                      onChange={(e) => setFormData({ ...formData, nirfRank: e.target.value })}
+                      placeholder="e.g., 35, 101-150, Top 200"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Established Year</label>
+                    <input
+                      type="text"
+                      value={formData.established}
+                      onChange={(e) => setFormData({ ...formData, established: e.target.value })}
+                      placeholder="e.g., 2005"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Students Count</label>
                     <input
                       type="text"
                       value={formData.students}
                       onChange={(e) => setFormData({ ...formData, students: e.target.value })}
-                      placeholder="e.g., 6,500+"
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="e.g., 10,000+"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg"
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Highest Package</label>
                     <input
                       type="text"
                       value={formData.highestPackage}
                       onChange={(e) => setFormData({ ...formData, highestPackage: e.target.value })}
-                      placeholder="e.g., ₹14 LPA"
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="e.g., 47 LPA"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg"
                     />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Placement Rate</label>
                     <input
                       type="text"
                       value={formData.placementRate}
                       onChange={(e) => setFormData({ ...formData, placementRate: e.target.value })}
-                      placeholder="e.g., 90%"
-                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="e.g., 92%"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Fee Structure</label>
+                    <input
+                      type="text"
+                      value={formData.fees}
+                      onChange={(e) => setFormData({ ...formData, fees: e.target.value })}
+                      placeholder="e.g., ₹1.0 Lakhs/year"
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg"
                     />
                   </div>
                 </div>
 
+                {/* Accreditation Multi-Select Dropdown */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fee Structure</label>
-                  <input
-                    type="text"
-                    value={formData.fees}
-                    onChange={(e) => setFormData({ ...formData, fees: e.target.value })}
-                    placeholder="e.g., ₹31,000 - ₹1.57L/semester"
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                    <Award className="w-4 h-4 text-yellow-600" /> Accreditation & Rankings
+                  </label>
+                  <div className="relative mb-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowAccreditationDropdown(!showAccreditationDropdown)}
+                      className="w-full px-4 py-2 border rounded-lg bg-white text-left flex justify-between items-center"
+                    >
+                      <span>{formData.accreditation?.length === 0 ? "Select Accreditations" : `${formData.accreditation?.length} selected`}</span>
+                      <ChevronDown className={`w-4 h-4 transition-transform ${showAccreditationDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showAccreditationDropdown && (
+                      <div className="absolute z-10 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                        <div className="sticky top-0 p-2 border-b bg-white">
+                          <input type="text" placeholder="Search..." value={accreditationSearch} onChange={(e) => setAccreditationSearch(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                        </div>
+                        <div className="p-2 max-h-60 overflow-y-auto">
+                          {filteredAccreditations.map((opt) => (
+                            <label key={opt} className="flex items-center gap-2 p-2 hover:bg-purple-50 rounded-lg cursor-pointer">
+                              <input type="checkbox" checked={formData.accreditation?.includes(opt)} onChange={() => toggleAccreditation(opt)} className="w-4 h-4" />
+                              <span className="text-sm">{opt}</span>
+                            </label>
+                          ))}
+                          {accreditationSearch && !accreditationOptions.includes(accreditationSearch) && (
+                            <button onClick={addCustomAccreditation} className="w-full text-left p-2 text-sm text-purple-600 hover:bg-purple-50 rounded-lg">
+                              + Add "{accreditationSearch}"
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.accreditation?.map((a, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm">
+                        {a} <button onClick={() => removeAccreditation(i)}><X className="w-3 h-3" /></button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Facilities Multi-Select Dropdown */}
+                <div>
+                  <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                    <Building className="w-4 h-4 text-blue-600" /> Campus Facilities
+                  </label>
+                  <div className="relative mb-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowFacilityDropdown(!showFacilityDropdown)}
+                      className="w-full px-4 py-2 border rounded-lg bg-white text-left flex justify-between items-center"
+                    >
+                      <span>{formData.facilities?.length === 0 ? "Select Facilities" : `${formData.facilities?.length} selected`}</span>
+                      <ChevronDown className={`w-4 h-4 transition-transform ${showFacilityDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showFacilityDropdown && (
+                      <div className="absolute z-10 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                        <div className="sticky top-0 p-2 border-b bg-white">
+                          <input type="text" placeholder="Search..." value={facilitySearch} onChange={(e) => setFacilitySearch(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm" />
+                        </div>
+                        <div className="p-2 max-h-60 overflow-y-auto">
+                          {filteredFacilities.map((opt) => (
+                            <label key={opt} className="flex items-center gap-2 p-2 hover:bg-blue-50 rounded-lg cursor-pointer">
+                              <input type="checkbox" checked={formData.facilities?.includes(opt)} onChange={() => toggleFacility(opt)} className="w-4 h-4" />
+                              <span className="text-sm">{opt}</span>
+                            </label>
+                          ))}
+                          {facilitySearch && !facilityOptions.includes(facilitySearch) && (
+                            <button onClick={addCustomFacility} className="w-full text-left p-2 text-sm text-purple-600 hover:bg-purple-50 rounded-lg">
+                              + Add "{facilitySearch}"
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.facilities?.map((f, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm">
+                        {f} <button onClick={() => removeFacility(i)}><X className="w-3 h-3" /></button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Courses Section */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Courses Offered</label>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={courseInput}
+                      onChange={(e) => setCourseInput(e.target.value)}
+                      placeholder="Add a course"
+                      className="flex-1 px-4 py-2 border border-gray-200 rounded-lg"
+                      onKeyPress={(e) => e.key === 'Enter' && addCourse()}
+                    />
+                    <button onClick={addCourse} className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200">Add</button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.courses?.map((course, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm">
+                        {course}
+                        <button onClick={() => removeCourse(idx)}><X className="w-3 h-3" /></button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Description / About */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description / About</label>
+                  <textarea
+                    value={formData.description || formData.about}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value, about: e.target.value })}
+                    rows={4}
+                    className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+                    placeholder="Describe the college..."
                   />
                 </div>
 
+                {/* College Image */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">College Image</label>
                   <input
@@ -452,46 +760,8 @@ export function CollegeManagement() {
                   )}
                 </div>
 
-                {/* Courses Section */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Courses</label>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      value={courseInput}
-                      onChange={(e) => setCourseInput(e.target.value)}
-                      placeholder="Add a course"
-                      className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      onKeyPress={(e) => e.key === 'Enter' && addCourse()}
-                    />
-                    <button onClick={addCourse} className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200">
-                      Add
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.courses?.map((course, idx) => (
-                      <span key={idx} className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
-                        {course}
-                        <button onClick={() => removeCourse(idx)} className="hover:text-purple-900">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* About Section */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">About College</label>
-                  <textarea
-                    value={formData.about}
-                    onChange={(e) => setFormData({ ...formData, about: e.target.value })}
-                    rows={4}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-4">
+                {/* Buttons */}
+                <div className="flex gap-3 pt-4 border-t">
                   <button
                     onClick={handleSubmit}
                     disabled={uploading}

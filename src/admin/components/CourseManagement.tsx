@@ -63,6 +63,8 @@ const categoryOptions = [
 // University Templates
 const universityTemplates = [
   "Dr. A.P.J. Abdul Kalam Technical University (AKTU), Lucknow",
+  "Chandigarh University, Chandigarh",
+  "Bennett University, Greater Noida",
   "CCS University, Meerut", "University of Lucknow, Lucknow",
   "Banaras Hindu University (BHU), Varanasi", "Aligarh Muslim University (AMU), Aligarh",
   "University of Delhi, Delhi", "Jamia Millia Islamia, New Delhi",
@@ -112,7 +114,7 @@ const affiliationByCategory: Record<string, string[]> = {
 
 // Category-wise Eligibility
 const eligibilityByCategory: Record<string, string[]> = {
-  engineering: ["10+2 with PCM with minimum 45% marks. Valid JEE Main/CUET score."],
+  engineering: ["10+2 with PCM with minimum 45% marks. Valid JEE Main/CUET score.","Bachelor's degree in relevant field for lateral entry.","Bachelor's degree with 50% marks for PG courses."],
   management: ["10+2 with minimum 50% marks from any recognized board."],
   pharmacy: ["10+2 with PCB/PCM with minimum 50% marks."],
   nursing: ["10+2 with PCB with minimum 45% marks. Minimum age 17 years."],
