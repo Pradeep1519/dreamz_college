@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
 import { UniversityDetailModal } from './UniversityDetailModal';
+import { useOffers } from '../../app/hooks/useOffers';
 
 interface NavigationProps {
   activePage: string;
@@ -38,7 +39,7 @@ const universitiesData = {
     website: 'https://aktu.ac.in',
     email: 'info@aktu.ac.in',
     phone: '+91-522-1234567',
-    description: 'Dr. A.P.J. Abdul Kalam Technical University (AKTU), formerly Uttar Pradesh Technical University (UPTU), is a public university in Lucknow, Uttar Pradesh. It was established in 2000 by the Government of Uttar Pradesh to promote technical education in the state.',
+    description: 'Dr. A.P.J. Abdul Kalam Technical University (AKTU), formerly Uttar Pradesh Technical University (UPTU), is a public university in Lucknow, Uttar Pradesh.',
     achievements: [
       'Ranked 151-200 in NIRF Engineering Category',
       'Over 750 affiliated colleges across Uttar Pradesh',
@@ -60,7 +61,7 @@ const universitiesData = {
     website: 'https://ccsuniversity.ac.in',
     email: 'info@ccsuniversity.ac.in',
     phone: '+91-121-1234567',
-    description: 'Chaudhary Charan Singh University (CCSU), formerly Meerut University, is a public university in Meerut, Uttar Pradesh. It was established in 1965 and is named after India\'s former Prime Minister, Chaudhary Charan Singh.',
+    description: 'Chaudhary Charan Singh University (CCSU), formerly Meerut University, is a public university in Meerut, Uttar Pradesh.',
     achievements: [
       'NAAC A+ Grade',
       'Ranked 101-150 in NIRF University Category',
@@ -82,7 +83,7 @@ const universitiesData = {
     website: 'https://ipu.ac.in',
     email: 'info@ipu.ac.in',
     phone: '+91-11-12345678',
-    description: 'Guru Gobind Singh Indraprastha University (GGSIPU) is a public university located in Delhi, India. It was established in 1998 and is named after the tenth Sikh Guru, Guru Gobind Singh.',
+    description: 'Guru Gobind Singh Indraprastha University (GGSIPU) is a public university located in Delhi, India.',
     achievements: [
       'NAAC A+ Grade',
       'Ranked 85 in NIRF University Category',
@@ -104,7 +105,7 @@ const universitiesData = {
     website: 'https://bteup.ac.in',
     email: 'info@bteup.ac.in',
     phone: '+91-522-1234567',
-    description: 'Uttar Pradesh Board of Technical Education (UPBTE) is a board of technical education in Uttar Pradesh, India. It was established in 1958 and is responsible for conducting examinations and providing affiliation to polytechnic institutions in the state.',
+    description: 'Uttar Pradesh Board of Technical Education (UPBTE) is a board of technical education in Uttar Pradesh, India.',
     achievements: [
       'Over 400 affiliated polytechnic colleges',
       'Conducts JEECUP examination annually',
@@ -117,26 +118,26 @@ const universitiesData = {
 
 const explorePrograms = {
   ugPrograms: [
-    { label: 'Engineering (B.Tech)', icon: Laptop, path: '/colleges?course=btech', description: '4 Years • Full Time' },
-    { label: 'Management (BBA)', icon: Briefcase, path: '/colleges?course=bba', description: '3 Years • Full Time' },
-    { label: 'Computer Applications (BCA)', icon: GraduationCap, path: '/colleges?course=bca', description: '3 Years • Full Time' },
-    { label: 'Commerce (B.Com)', icon: Scale, path: '/colleges?course=bcom', description: '3 Years • Full Time' },
-    { label: 'Law (BA LLB)', icon: Scale, path: '/colleges?course=law', description: '5 Years • Integrated' },
-    { label: 'Nursing (B.Sc)', icon: Heart, path: '/colleges?course=nursing', description: '4 Years • Full Time' },
-    { label: 'Pharmacy (B.Pharm)', icon: Microscope, path: '/colleges?course=pharmacy', description: '4 Years • Full Time' },
+    { label: 'Engineering (B.Tech)', icon: Laptop, path: '/colleges?course=B.Tech', description: '4 Years • Full Time' },
+    { label: 'Management (BBA)', icon: Briefcase, path: '/colleges?course=BBA', description: '3 Years • Full Time' },
+    { label: 'Computer Applications (BCA)', icon: GraduationCap, path: '/colleges?course=BCA', description: '3 Years • Full Time' },
+    { label: 'Commerce (B.Com)', icon: Scale, path: '/colleges?course=B.Com', description: '3 Years • Full Time' },
+    { label: 'Law (BA LLB)', icon: Scale, path: '/colleges?course=Law', description: '5 Years • Integrated' },
+    { label: 'Nursing (B.Sc)', icon: Heart, path: '/colleges?course=Nursing', description: '4 Years • Full Time' },
+    { label: 'Pharmacy (B.Pharm)', icon: Microscope, path: '/colleges?course=B.Pharm', description: '4 Years • Full Time' },
   ],
   pgPrograms: [
-    { label: 'MBA (Master of Business)', icon: Briefcase, path: '/colleges?course=mba', description: '2 Years • Full Time' },
-    { label: 'MCA (Computer Applications)', icon: GraduationCap, path: '/colleges?course=mca', description: '2 Years • Full Time' },
-    { label: 'M.Tech (Engineering)', icon: Laptop, path: '/colleges?course=mtech', description: '2 Years • Full Time' },
-    { label: 'LLM (Law)', icon: Scale, path: '/colleges?course=llm', description: '2 Years • Full Time' },
-    { label: 'M.Sc Nursing', icon: Heart, path: '/colleges?course=msc-nursing', description: '2 Years • Full Time' },
-    { label: 'M.Pharm', icon: Microscope, path: '/colleges?course=mpharm', description: '2 Years • Full Time' },
+    { label: 'MBA (Master of Business)', icon: Briefcase, path: '/colleges?course=MBA', description: '2 Years • Full Time' },
+    { label: 'MCA (Computer Applications)', icon: GraduationCap, path: '/colleges?course=MCA', description: '2 Years • Full Time' },
+    { label: 'M.Tech (Engineering)', icon: Laptop, path: '/colleges?course=M.Tech', description: '2 Years • Full Time' },
+    { label: 'LLM (Law)', icon: Scale, path: '/colleges?course=LLM', description: '2 Years • Full Time' },
+    { label: 'M.Sc Nursing', icon: Heart, path: '/colleges?course=M.Sc', description: '2 Years • Full Time' },
+    { label: 'M.Pharm', icon: Microscope, path: '/colleges?course=M.Pharm', description: '2 Years • Full Time' },
   ],
   diplomaPrograms: [
-    { label: 'Polytechnic Diploma', icon: Laptop, path: '/colleges?course=polytechnic', description: '3 Years • Full Time' },
-    { label: 'D.Pharm (Pharmacy)', icon: Microscope, path: '/colleges?course=dpharm', description: '2 Years • Full Time' },
-    { label: 'GNM (Nursing)', icon: Heart, path: '/colleges?course=gnm', description: '3.5 Years • Full Time' },
+    { label: 'Polytechnic Diploma', icon: Laptop, path: '/colleges?course=Diploma', description: '3 Years • Full Time' },
+    { label: 'D.Pharm', icon: Microscope, path: '/colleges?course=D.Pharm', description: '2 Years • Full Time' },
+    { label: 'GNM', icon: Heart, path: '/colleges?course=GNM', description: '3.5 Years • Full Time' },
   ],
   otherPrograms: [
     { label: 'Online Programs', icon: Laptop, path: '/online-programs', description: 'Flexible Learning' },
@@ -191,6 +192,10 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
   const userMenuRef = useRef<HTMLDivElement>(null);
   
   const { scrollY } = useScroll();
+
+  // ✅ Fetch offers for signin button
+  const { offers } = useOffers({ location: 'login_popup', autoFetch: true });
+  const signupOffer = offers.find(o => o.locations?.includes('login_popup') && o.isActive === true);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -549,82 +554,43 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                 </AnimatePresence>
               </div>
 
-              {/* SIGN IN / USER MENU */}
+              {/* ✅ SIGN IN BUTTON - WITH OFFER INSIDE */}
               <div className="relative" ref={userMenuRef}>
                 {user ? (
-                  <>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setShowUserMenu(!showUserMenu)}
-                      className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-purple-100 to-blue-100 text-gray-700 rounded-full font-medium text-xs md:text-sm shadow-sm hover:shadow-md transition-all"
-                    >
-                      <User className="w-4 h-4 text-purple-600" />
-                      <span className="max-w-[80px] truncate">{userData?.name?.split(' ')[0] || 'User'}</span>
-                      <ChevronDown className={`w-3 h-3 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
-                    </motion.button>
-                    
-                    <AnimatePresence>
-                      {showUserMenu && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50"
-                        >
-                          <div className="px-4 py-3 border-b border-gray-100">
-                            <p className="text-sm font-medium text-gray-900">{userData?.name || 'User'}</p>
-                            <p className="text-xs text-gray-500 truncate">{userData?.email || user?.phoneNumber}</p>
-                          </div>
-                          
-                          {isAdmin && (
-                            <button
-                              onClick={() => {
-                                navigate('/admin/dashboard');
-                                setShowUserMenu(false);
-                              }}
-                              className="w-full text-left px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 flex items-center gap-2 border-b border-gray-100"
-                            >
-                              <Shield className="w-4 h-4" />
-                              Admin Panel
-                            </button>
-                          )}
-                          
-                          <button
-                            onClick={() => {
-                              navigate('/dashboard');
-                              setShowUserMenu(false);
-                            }}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                          >
-                            <User className="w-4 h-4" />
-                            Dashboard
-                          </button>
-                          <button
-                            onClick={handleLogout}
-                            className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                          >
-                            <LogOut className="w-4 h-4" />
-                            Sign Out
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-purple-100 to-blue-100 text-gray-700 rounded-full font-medium text-xs md:text-sm shadow-sm hover:shadow-md transition-all"
+                  >
+                    <User className="w-4 h-4 text-purple-600" />
+                    <span className="max-w-[80px] truncate">{userData?.name?.split(' ')[0] || 'User'}</span>
+                    <ChevronDown className={`w-3 h-3 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+                  </motion.button>
                 ) : (
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleSignIn}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-medium text-sm shadow-md hover:shadow-lg transition-all"
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-medium text-sm shadow-md hover:shadow-lg transition-all relative"
                   >
                     <User className="w-4 h-4" />
                     <span>Sign In</span>
+                    {/* ✅ 50% OFF badge inside button */}
+                    {signupOffer && (
+                      <motion.span
+                        animate={{ opacity: [1, 0.5, 1] }}
+                        transition={{ duration: 1, repeat: Infinity, repeatType: "loop" }}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-md"
+                      >
+                        50% OFF
+                      </motion.span>
+                    )}
                   </motion.button>
                 )}
               </div>
 
-              {/* FREE COUNSELING BUTTON */}
+              {/* ✅ FREE COUNSELING BUTTON - Hidden on mobile, visible on desktop */}
               <motion.button 
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -635,7 +601,7 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                 <span>Free Counseling</span>
               </motion.button>
 
-              {/* MOBILE MENU BUTTON */}
+              {/* ✅ MOBILE MENU BUTTON - 3 lines, visible only on mobile */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="lg:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gray-100 flex items-center justify-center"
@@ -682,7 +648,17 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                     </div>
                   ) : (
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <button onClick={() => { handleSignIn(); setIsMobileMenuOpen(false); }} className="w-full py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-sm">Sign In / Sign Up</button>
+                      <button
+                        onClick={() => { handleSignIn(); setIsMobileMenuOpen(false); }}
+                        className="w-full py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-sm relative"
+                      >
+                        Sign In / Sign Up
+                        {signupOffer && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full">
+                            50% OFF
+                          </span>
+                        )}
+                      </button>
                     </div>
                   )}
                   

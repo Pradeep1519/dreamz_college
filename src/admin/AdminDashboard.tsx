@@ -7,7 +7,8 @@ import {
   Phone, FileText, Settings, Bell, 
   Shield, LogOut, Menu, X, Home,
   ChevronDown, ChevronRight, Sparkles, Crown,
-  TrendingUp, Calendar, CheckCircle, Clock, Eye, XCircle
+  TrendingUp, Calendar, CheckCircle, Clock, Eye, XCircle,
+  Tag
 } from 'lucide-react';
 import { UserManagement } from './components/UserManagement';
 import { CollegeManagement } from './components/CollegeManagement';
@@ -17,10 +18,11 @@ import { LeadManagement } from './components/LeadManagement';
 import { ContentManagement } from './components/ContentManagement';
 import { Settings as SettingsComponent } from './components/Settings';
 import { Notifications } from './components/Notifications';
+import { OffersManagement } from './components/OffersManagement';
 import { db } from '../lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
-type TabId = 'overview' | 'users' | 'colleges' | 'courses' | 'analytics' | 'leads' | 'content' | 'settings' | 'notifications';
+type TabId = 'overview' | 'users' | 'colleges' | 'courses' | 'analytics' | 'leads' | 'content' | 'settings' | 'notifications' | 'offers';
 
 interface Tab {
   id: TabId;
@@ -39,12 +41,13 @@ const tabs: Tab[] = [
   { id: 'leads', label: 'Lead Management', icon: Phone, description: 'Student inquiries', mobileLabel: 'Leads' },
   { id: 'content', label: 'Content', icon: FileText, description: 'Manage content', mobileLabel: 'Content' },
   { id: 'settings', label: 'Settings', icon: Settings, description: 'Settings', mobileLabel: 'Settings' },
-  { id: 'notifications', label: 'Notifications', icon: Bell, description: 'Send notifications', mobileLabel: 'Alerts' }
+  { id: 'notifications', label: 'Notifications', icon: Bell, description: 'Send notifications', mobileLabel: 'Alerts' },
+  { id: 'offers', label: 'Offers', icon: Tag, description: 'Manage offers & discounts', mobileLabel: 'Offers' }
 ];
 
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile me closed by default
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [adminName, setAdminName] = useState('Admin');
   const [adminEmail, setAdminEmail] = useState('');
@@ -61,7 +64,6 @@ export function AdminDashboard() {
     weekApplications: 0
   });
 
-  // Check screen size
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -173,10 +175,11 @@ export function AdminDashboard() {
         return <SettingsComponent />;
       case 'notifications':
         return <Notifications />;
+      case 'offers':
+        return <OffersManagement />;
       default:
         return (
           <div className="space-y-4 sm:space-y-6">
-            {/* Welcome Section - Responsive */}
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl sm:rounded-2xl p-4 sm:p-8 text-white">
               <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
                 <Shield className="w-5 h-5 sm:w-8 sm:h-8" />
@@ -185,7 +188,6 @@ export function AdminDashboard() {
               <p className="text-purple-100 text-xs sm:text-sm">Here's what's happening with your platform today.</p>
             </div>
 
-            {/* Stats Cards - Responsive Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
               <StatCard title="Total Users" value={stats.totalUsers} icon={Users} color="bg-purple-600" />
               <StatCard title="Colleges" value={stats.totalColleges} icon={Building} color="bg-blue-600" />
@@ -193,7 +195,6 @@ export function AdminDashboard() {
               <StatCard title="Today's Apps" value={stats.todayApplications} icon={Calendar} color="bg-orange-600" />
             </div>
 
-            {/* Application Status - Responsive Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               <div className="bg-yellow-50 rounded-lg sm:rounded-xl p-3 sm:p-4 border border-yellow-100">
                 <div className="flex items-center justify-between">
@@ -233,7 +234,6 @@ export function AdminDashboard() {
               </div>
             </div>
 
-            {/* Quick Actions - Responsive Grid */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Quick Actions</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
@@ -249,14 +249,13 @@ export function AdminDashboard() {
                   <Phone className="w-4 h-4 sm:w-6 sm:h-6 text-green-600 mx-auto mb-1 sm:mb-2" />
                   <p className="text-xs sm:text-sm font-medium text-gray-700">Leads</p>
                 </button>
-                <button onClick={() => setActiveTab('notifications')} className="p-3 sm:p-4 bg-orange-50 rounded-lg sm:rounded-xl text-center hover:bg-orange-100 transition-colors">
-                  <Bell className="w-4 h-4 sm:w-6 sm:h-6 text-orange-600 mx-auto mb-1 sm:mb-2" />
-                  <p className="text-xs sm:text-sm font-medium text-gray-700">Notify</p>
+                <button onClick={() => setActiveTab('offers')} className="p-3 sm:p-4 bg-pink-50 rounded-lg sm:rounded-xl text-center hover:bg-pink-100 transition-colors">
+                  <Tag className="w-4 h-4 sm:w-6 sm:h-6 text-pink-600 mx-auto mb-1 sm:mb-2" />
+                  <p className="text-xs sm:text-sm font-medium text-gray-700">Offers</p>
                 </button>
               </div>
             </div>
 
-            {/* Activity & Tips - Responsive Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
                 <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4 flex items-center gap-2">
@@ -287,7 +286,7 @@ export function AdminDashboard() {
                   <li className="flex items-start gap-2">💡 <span>Review student applications</span></li>
                   <li className="flex items-start gap-2">💡 <span>Update application statuses</span></li>
                   <li className="flex items-start gap-2">💡 <span>Export data as CSV</span></li>
-                  <li className="flex items-start gap-2">💡 <span>Send notifications</span></li>
+                  <li className="flex items-start gap-2">💡 <span>Create special offers for students</span></li>
                 </ul>
               </div>
             </div>
@@ -301,7 +300,6 @@ export function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Navbar - Mobile Optimized */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-20">
         <div className="px-3 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between">
@@ -326,7 +324,6 @@ export function AdminDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
-              {/* Mobile Tab Indicator */}
               <div className="block md:hidden bg-purple-50 px-2 py-1 rounded-lg">
                 <span className="text-xs font-medium text-purple-600">{activeLabel}</span>
               </div>
@@ -343,7 +340,6 @@ export function AdminDashboard() {
       </div>
 
       <div className="flex relative">
-        {/* Sidebar - Mobile Optimized with Overlay */}
         {sidebarOpen && isMobile && (
           <div 
             className="fixed inset-0 bg-black/50 z-30 transition-opacity"
@@ -401,7 +397,6 @@ export function AdminDashboard() {
           </div>
         </div>
 
-        {/* Main Content - Mobile Optimized */}
         <div className="flex-1 p-3 sm:p-6">
           {renderContent()}
         </div>

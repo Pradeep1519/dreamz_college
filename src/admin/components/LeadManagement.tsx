@@ -8,7 +8,7 @@ import {
   CheckCircle, XCircle, Clock, AlertCircle,
   Star, UserPlus, MessageSquare, Share2,
   ThumbsUp, TrendingUp, Award, Target, School, GraduationCap,
-  Building, BookOpen
+  Building, BookOpen, Gift, Zap, Shield
 } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { collection, getDocs, updateDoc, doc, query, orderBy } from 'firebase/firestore';
@@ -28,10 +28,20 @@ interface Inquiry {
   twelfthBoard: string;
   twelfthPercentage: number;
   twelfthPassingYear: string;
+  hearAbout?: string;
+  counselingMode?: string;
   message: string;
   status: string;
   createdAt: string;
   applicationType: string;
+  offerClaimed?: boolean;
+  offerName?: string;
+  discountAmount?: number;
+  originalFee?: number;
+  appliedFee?: number;
+  scholarshipEligible?: boolean;
+  scholarshipAmount?: number;
+  scholarshipName?: string;
 }
 
 export function LeadManagement() {
@@ -39,6 +49,7 @@ export function LeadManagement() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [offerFilter, setOfferFilter] = useState<string>('all');
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -72,10 +83,20 @@ export function LeadManagement() {
           twelfthBoard: data.twelfthBoard || 'N/A',
           twelfthPercentage: data.twelfthPercentage || 0,
           twelfthPassingYear: data.twelfthPassingYear || 'N/A',
+          hearAbout: data.hearAbout || 'N/A',
+          counselingMode: data.counselingMode || 'N/A',
           message: data.message || '',
           status: data.status || 'pending',
           createdAt: data.createdAt,
-          applicationType: data.applicationType || 'basic'
+          applicationType: data.applicationType || 'basic',
+          offerClaimed: data.offerClaimed || false,
+          offerName: data.offerName,
+          discountAmount: data.discountAmount,
+          originalFee: data.originalFee,
+          appliedFee: data.appliedFee,
+          scholarshipEligible: data.scholarshipEligible || false,
+          scholarshipAmount: data.scholarshipAmount,
+          scholarshipName: data.scholarshipName
         });
       });
       setInquiries(inquiriesList);
@@ -111,26 +132,32 @@ export function LeadManagement() {
   };
 
   const exportToCSV = () => {
-    const headers = ['Name', 'Email', 'Phone', 'College', 'Course', '10th Board', '10th %', '10th Year', '12th Board', '12th %', '12th Year', 'Status', 'Applied On', 'Message'];
+    const headers = ['Name', 'Email', 'Phone', 'College', 'Course', '10th Board', '10th %', '10th Year', '12th Board', '12th %', '12th Year', 'Heard About', 'Counseling Mode', 'Offer Claimed', 'Offer Name', 'Discount', 'Scholarship', 'Status', 'Applied On', 'Message'];
     const csvData = filteredInquiries.map(inq => [
-      inq.name,
-      inq.email,
-      inq.phone,
-      inq.collegeName,
-      inq.course,
-      inq.tenthBoard,
+      `"${inq.name}"`,
+      `"${inq.email}"`,
+      `"${inq.phone}"`,
+      `"${inq.collegeName}"`,
+      `"${inq.course}"`,
+      `"${inq.tenthBoard}"`,
       inq.tenthPercentage,
-      inq.tenthPassingYear,
-      inq.twelfthBoard,
+      `"${inq.tenthPassingYear}"`,
+      `"${inq.twelfthBoard}"`,
       inq.twelfthPercentage,
-      inq.twelfthPassingYear,
+      `"${inq.twelfthPassingYear}"`,
+      `"${inq.hearAbout}"`,
+      `"${inq.counselingMode}"`,
+      inq.offerClaimed ? 'Yes' : 'No',
+      `"${inq.offerName || 'N/A'}"`,
+      inq.discountAmount ? `₹${inq.discountAmount.toLocaleString()}` : 'N/A',
+      inq.scholarshipEligible ? `${inq.scholarshipName} (₹${inq.scholarshipAmount?.toLocaleString()})` : 'No',
       inq.status,
       new Date(inq.createdAt).toLocaleDateString(),
-      inq.message
+      `"${inq.message}"`
     ]);
     
     const csvContent = [headers, ...csvData].map(row => row.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -144,9 +171,11 @@ export function LeadManagement() {
     const matchesSearch = inq.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           inq.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           inq.phone.includes(searchTerm) ||
-                          inq.collegeName.toLowerCase().includes(searchTerm.toLowerCase());
+                          inq.collegeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          inq.course.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' ? true : inq.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesOffer = offerFilter === 'all' ? true : offerFilter === 'claimed' ? inq.offerClaimed : !inq.offerClaimed;
+    return matchesSearch && matchesStatus && matchesOffer;
   });
 
   const getStatusColor = (status: string) => {
@@ -159,22 +188,32 @@ export function LeadManagement() {
     return colors[status] || colors.pending;
   };
 
-  const getStatusIcon = (status: string) => {
-    const icons: Record<string, any> = {
-      pending: <Clock className="w-3 h-3" />,
-      reviewed: <Eye className="w-3 h-3" />,
-      accepted: <CheckCircle className="w-3 h-3" />,
-      rejected: <XCircle className="w-3 h-3" />
-    };
-    return icons[status] || icons.pending;
-  };
-
   const stats = {
     total: inquiries.length,
     pending: inquiries.filter(i => i.status === 'pending').length,
     reviewed: inquiries.filter(i => i.status === 'reviewed').length,
     accepted: inquiries.filter(i => i.status === 'accepted').length,
-    rejected: inquiries.filter(i => i.status === 'rejected').length
+    rejected: inquiries.filter(i => i.status === 'rejected').length,
+    offerClaimed: inquiries.filter(i => i.offerClaimed).length,
+    scholarshipEligible: inquiries.filter(i => i.scholarshipEligible).length
+  };
+
+  const getCounselingModeIcon = (mode: string) => {
+    switch(mode?.toLowerCase()) {
+      case 'online': return <Monitor className="w-3 h-3" />;
+      case 'offline': return <Building className="w-3 h-3" />;
+      case 'phone': return <Phone className="w-3 h-3" />;
+      default: return <MessageCircle className="w-3 h-3" />;
+    }
+  };
+
+  const getCounselingModeColor = (mode: string) => {
+    switch(mode?.toLowerCase()) {
+      case 'online': return 'bg-purple-100 text-purple-700';
+      case 'offline': return 'bg-blue-100 text-blue-700';
+      case 'phone': return 'bg-green-100 text-green-700';
+      default: return 'bg-gray-100 text-gray-600';
+    }
   };
 
   return (
@@ -196,10 +235,10 @@ export function LeadManagement() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Student Applications</h2>
-          <p className="text-sm text-gray-500">Manage all student applications</p>
+          <h2 className="text-xl font-semibold text-gray-900">📋 Student Applications</h2>
+          <p className="text-sm text-gray-500">Manage all student applications with offer & scholarship tracking</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -220,37 +259,45 @@ export function LeadManagement() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 text-center">
-          <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-          <p className="text-xs text-gray-500">Total</p>
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-3">
+        <div className="bg-white rounded-xl p-3 shadow-sm border text-center">
+          <p className="text-xl font-bold text-gray-900">{stats.total}</p>
+          <p className="text-[10px] text-gray-500">Total</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 text-center">
-          <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-          <p className="text-xs text-gray-500">Pending</p>
+        <div className="bg-white rounded-xl p-3 shadow-sm border text-center">
+          <p className="text-xl font-bold text-yellow-600">{stats.pending}</p>
+          <p className="text-[10px] text-gray-500">Pending</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 text-center">
-          <p className="text-2xl font-bold text-blue-600">{stats.reviewed}</p>
-          <p className="text-xs text-gray-500">Reviewed</p>
+        <div className="bg-white rounded-xl p-3 shadow-sm border text-center">
+          <p className="text-xl font-bold text-blue-600">{stats.reviewed}</p>
+          <p className="text-[10px] text-gray-500">Reviewed</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 text-center">
-          <p className="text-2xl font-bold text-green-600">{stats.accepted}</p>
-          <p className="text-xs text-gray-500">Accepted</p>
+        <div className="bg-white rounded-xl p-3 shadow-sm border text-center">
+          <p className="text-xl font-bold text-green-600">{stats.accepted}</p>
+          <p className="text-[10px] text-gray-500">Accepted</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 text-center">
-          <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
-          <p className="text-xs text-gray-500">Rejected</p>
+        <div className="bg-white rounded-xl p-3 shadow-sm border text-center">
+          <p className="text-xl font-bold text-red-600">{stats.rejected}</p>
+          <p className="text-[10px] text-gray-500">Rejected</p>
+        </div>
+        <div className="bg-white rounded-xl p-3 shadow-sm border text-center">
+          <p className="text-xl font-bold text-purple-600">{stats.offerClaimed}</p>
+          <p className="text-[10px] text-gray-500">Offer Claimed</p>
+        </div>
+        <div className="bg-white rounded-xl p-3 shadow-sm border text-center">
+          <p className="text-xl font-bold text-orange-600">{stats.scholarshipEligible}</p>
+          <p className="text-[10px] text-gray-500">Scholarship</p>
         </div>
       </div>
 
       {/* Search & Filter */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name, email, phone or college..."
+              placeholder="Search by name, email, phone, college or course..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -267,6 +314,15 @@ export function LeadManagement() {
             <option value="accepted">Accepted</option>
             <option value="rejected">Rejected</option>
           </select>
+          <select
+            value={offerFilter}
+            onChange={(e) => setOfferFilter(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="all">All Offers</option>
+            <option value="claimed">Offer Claimed</option>
+            <option value="not-claimed">No Offer</option>
+          </select>
         </div>
       </div>
 
@@ -276,19 +332,20 @@ export function LeadManagement() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Student</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Contact</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">College & Course</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">10th/12th</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Applied On</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Student</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">College & Course</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">10th/12th</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Offer</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Counseling</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Applied On</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-4 py-12 text-center">
                     <div className="flex justify-center">
                       <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
                     </div>
@@ -297,60 +354,68 @@ export function LeadManagement() {
                 </tr>
               ) : filteredInquiries.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-4 py-12 text-center text-gray-500">
                     No applications found
                   </td>
                 </tr>
               ) : (
                 filteredInquiries.map((inquiry) => (
                   <tr key={inquiry.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-3">
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                          <span className="text-purple-600 font-medium text-sm">
+                          <span className="text-purple-600 font-medium text-xs">
                             {inquiry.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{inquiry.name}</p>
-                          <p className="text-xs text-gray-500">ID: {inquiry.id.slice(-8)}</p>
+                          <p className="font-medium text-gray-900 text-sm">{inquiry.name}</p>
+                          <p className="text-xs text-gray-500">{inquiry.email}</p>
+                          <p className="text-[10px] text-gray-400">{inquiry.phone}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <Mail className="w-3 h-3" />
-                          {inquiry.email}
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <Phone className="w-3 h-3" />
-                          {inquiry.phone}
-                        </div>
+                    <td className="px-4 py-3">
+                      <p className="text-sm font-medium text-gray-900">{inquiry.course}</p>
+                      <p className="text-xs text-gray-500">{inquiry.collegeName}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-xs">
+                        <div>10th: {inquiry.tenthPercentage}%</div>
+                        <div className="text-gray-500">12th: {inquiry.twelfthPercentage}%</div>
                       </div>
                     </td>
-                    <td className="px-6 py-3">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-gray-900">{inquiry.course}</p>
-                        <p className="text-xs text-gray-500 flex items-center gap-1">
-                          <Building className="w-3 h-3" />
-                          {inquiry.collegeName}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-3">
-                      <div className="space-y-1 text-xs">
+                    <td className="px-4 py-3">
+                      {inquiry.offerClaimed ? (
                         <div className="flex items-center gap-1">
-                          <School className="w-3 h-3 text-gray-400" />
-                          <span>{inquiry.tenthBoard} | {inquiry.tenthPercentage}% | {inquiry.tenthPassingYear}</span>
+                          <Gift className="w-3 h-3 text-purple-600" />
+                          <span className="text-xs font-medium text-purple-700">{inquiry.offerName || 'Claimed'}</span>
+                          {inquiry.discountAmount && (
+                            <span className="text-[10px] text-green-600">(-₹{inquiry.discountAmount.toLocaleString()})</span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <GraduationCap className="w-3 h-3 text-gray-400" />
-                          <span>{inquiry.twelfthBoard} | {inquiry.twelfthPercentage}% | {inquiry.twelfthPassingYear}</span>
+                      ) : (
+                        <span className="text-xs text-gray-400">No offer</span>
+                      )}
+                      {inquiry.scholarshipEligible && (
+                        <div className="mt-1">
+                          <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full">
+                            🎓 Scholarship
+                          </span>
                         </div>
-                      </div>
+                      )}
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-4 py-3">
+                      {inquiry.counselingMode && inquiry.counselingMode !== 'N/A' ? (
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${getCounselingModeColor(inquiry.counselingMode)}`}>
+                          {getCounselingModeIcon(inquiry.counselingMode)}
+                          {inquiry.counselingMode === 'online' ? 'Online' : inquiry.counselingMode === 'offline' ? 'Offline' : 'Phone'}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">Not set</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
                       <select
                         value={inquiry.status}
                         onChange={(e) => updateInquiryStatus(inquiry.id, e.target.value)}
@@ -363,10 +428,10 @@ export function LeadManagement() {
                         <option value="rejected">Rejected</option>
                       </select>
                     </td>
-                    <td className="px-6 py-3 text-gray-500 text-sm">
+                    <td className="px-4 py-3 text-gray-500 text-xs">
                       {new Date(inquiry.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-3">
+                    <td className="px-4 py-3">
                       <button
                         onClick={() => {
                           setSelectedInquiry(inquiry);
@@ -384,15 +449,15 @@ export function LeadManagement() {
             </tbody>
           </table>
         </div>
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
-          <p className="text-sm text-gray-500">Showing {filteredInquiries.length} of {inquiries.length} applications</p>
+        <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+          <p className="text-xs text-gray-500">Showing {filteredInquiries.length} of {inquiries.length} applications</p>
         </div>
       </div>
 
       {/* View Application Modal */}
       <AnimatePresence>
         {isViewModalOpen && selectedInquiry && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setIsViewModalOpen(false)}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto" onClick={() => setIsViewModalOpen(false)}>
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -417,7 +482,7 @@ export function LeadManagement() {
                     <div><span className="text-gray-500">Name:</span> <span className="font-medium">{selectedInquiry.name}</span></div>
                     <div><span className="text-gray-500">Email:</span> <span className="font-medium">{selectedInquiry.email}</span></div>
                     <div><span className="text-gray-500">Phone:</span> <span className="font-medium">{selectedInquiry.phone}</span></div>
-                    <div><span className="text-gray-500">Application ID:</span> <span className="font-mono">#{selectedInquiry.id.slice(-8)}</span></div>
+                    <div><span className="text-gray-500">Application ID:</span> <span className="font-mono text-xs">#{selectedInquiry.id.slice(-8)}</span></div>
                   </div>
                 </div>
 
@@ -457,18 +522,59 @@ export function LeadManagement() {
                   </div>
                 </div>
 
-                {/* Message & Status */}
+                {/* Offer & Scholarship */}
+                <div className="bg-orange-50 rounded-xl p-4">
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Gift className="w-4 h-4" /> Offer & Scholarship
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Offer Claimed:</span>
+                      <span className={selectedInquiry.offerClaimed ? 'text-green-600 font-semibold' : 'text-gray-400'}>
+                        {selectedInquiry.offerClaimed ? `Yes (${selectedInquiry.offerName})` : 'No'}
+                      </span>
+                    </div>
+                    {selectedInquiry.offerClaimed && (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Original Fee:</span>
+                          <span className="line-through">₹{selectedInquiry.originalFee?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Discounted Fee:</span>
+                          <span className="font-bold text-green-600">₹{selectedInquiry.appliedFee?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">You Saved:</span>
+                          <span className="text-green-600">₹{selectedInquiry.discountAmount?.toLocaleString()}</span>
+                        </div>
+                      </>
+                    )}
+                    {selectedInquiry.scholarshipEligible && (
+                      <div className="flex justify-between mt-2 pt-2 border-t border-orange-200">
+                        <span className="text-gray-500">Scholarship:</span>
+                        <span className="text-yellow-600 font-semibold">{selectedInquiry.scholarshipName} (₹{selectedInquiry.scholarshipAmount?.toLocaleString()})</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Additional Info */}
                 <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium text-gray-700 mb-1">Status</p>
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <Shield className="w-4 h-4" /> Additional Information
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div><span className="text-gray-500">Heard About:</span> <span className="capitalize">{selectedInquiry.hearAbout}</span></div>
+                    <div><span className="text-gray-500">Counseling Mode:</span> <span className="capitalize">{selectedInquiry.counselingMode}</span></div>
+                    <div><span className="text-gray-500">Status:</span> 
                       <select
                         value={selectedInquiry.status}
                         onChange={(e) => {
                           updateInquiryStatus(selectedInquiry.id, e.target.value);
                           setSelectedInquiry({ ...selectedInquiry, status: e.target.value });
                         }}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border-0 focus:ring-2 focus:ring-purple-500 ${getStatusColor(selectedInquiry.status)}`}
+                        className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedInquiry.status)}`}
                       >
                         <option value="pending">Pending</option>
                         <option value="reviewed">Reviewed</option>
@@ -476,10 +582,7 @@ export function LeadManagement() {
                         <option value="rejected">Rejected</option>
                       </select>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-700 mb-1">Applied On</p>
-                      <p className="text-sm text-gray-600">{new Date(selectedInquiry.createdAt).toLocaleString()}</p>
-                    </div>
+                    <div><span className="text-gray-500">Applied On:</span> {new Date(selectedInquiry.createdAt).toLocaleString()}</div>
                   </div>
                   {selectedInquiry.message && (
                     <div className="mt-3">
@@ -492,14 +595,14 @@ export function LeadManagement() {
                 <div className="flex gap-3 pt-2">
                   <button
                     onClick={() => window.open(`https://wa.me/${selectedInquiry.phone}`, '_blank')}
-                    className="flex-1 py-2 bg-green-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2"
+                    className="flex-1 py-2 bg-green-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2 text-sm"
                   >
                     <MessageCircle className="w-4 h-4" />
                     WhatsApp
                   </button>
                   <button
                     onClick={() => window.open(`mailto:${selectedInquiry.email}`)}
-                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2"
+                    className="flex-1 py-2 bg-blue-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2 text-sm"
                   >
                     <Mail className="w-4 h-4" />
                     Send Email

@@ -351,7 +351,6 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/course/:courseSlug/:courseName" element={<PageWrapper><CourseFormPage /></PageWrapper>} />
             <Route path="/dashboard" element={<PageWrapper><UserDashboard /></PageWrapper>} />
             
             <Route path="/blog" element={<PageWrapper><BlogListPage onNavigateToBlogDetail={(slug) => window.location.href = `/blog/${slug}`} /></PageWrapper>} />

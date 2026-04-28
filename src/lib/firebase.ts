@@ -2,7 +2,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
-import { getFirestore, collection, addDoc, query, where, getDocs, doc, setDoc, getDoc, deleteDoc, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, query, where, getDocs, doc, setDoc, getDoc, deleteDoc, orderBy, updateDoc } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // Firebase Config
@@ -121,12 +121,44 @@ export const getAllInquiries = async () => {
 
 export const updateInquiryStatus = async (inquiryId: string, status: string) => {
   const inquiryRef = doc(db, 'inquiries', inquiryId);
-  return await setDoc(inquiryRef, { status, updatedAt: new Date().toISOString() }, { merge: true });
+  return await updateDoc(inquiryRef, { status, updatedAt: new Date().toISOString() });
 };
 
-// ========== ✅ NEW: SAVED COLLEGES HELPERS ==========
+// ========== DRAFT APPLICATIONS HELPERS ==========
 
-// Save college for user
+export const saveDraftApplication = async (data: any, draftId?: string | null) => {
+  const draftsRef = collection(db, 'drafts');
+  if (draftId) {
+    const draftRef = doc(db, 'drafts', draftId);
+    await updateDoc(draftRef, { ...data, updatedAt: new Date().toISOString() });
+    return draftId;
+  } else {
+    const docRef = await addDoc(draftsRef, {
+      ...data,
+      createdAt: new Date().toISOString(),
+      status: 'draft'
+    });
+    return docRef.id;
+  }
+};
+
+export const updateDraftToSubmitted = async (draftId: string) => {
+  const draftRef = doc(db, 'drafts', draftId);
+  await updateDoc(draftRef, {
+    status: 'submitted',
+    submittedAt: new Date().toISOString()
+  });
+};
+
+export const getAllDrafts = async () => {
+  const draftsRef = collection(db, 'drafts');
+  const q = query(draftsRef, orderBy('updatedAt', 'desc'));
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
+
+// ========== SAVED COLLEGES HELPERS ==========
+
 export const saveCollege = async (userId: string, collegeData: any) => {
   const savedRef = collection(db, 'saved_colleges');
   const q = query(savedRef, where('userId', '==', userId), where('collegeId', '==', collegeData.collegeId));
@@ -150,13 +182,11 @@ export const saveCollege = async (userId: string, collegeData: any) => {
   return { success: true, message: 'College saved successfully' };
 };
 
-// Remove saved college
 export const removeSavedCollege = async (savedId: string) => {
   await deleteDoc(doc(db, 'saved_colleges', savedId));
   return { success: true };
 };
 
-// Get user's saved colleges
 export const getSavedColleges = async (userId: string) => {
   const savedRef = collection(db, 'saved_colleges');
   const q = query(savedRef, where('userId', '==', userId), orderBy('savedAt', 'desc'));
@@ -164,7 +194,6 @@ export const getSavedColleges = async (userId: string) => {
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
-// Check if college is saved by user
 export const isCollegeSaved = async (userId: string, collegeId: string) => {
   const savedRef = collection(db, 'saved_colleges');
   const q = query(savedRef, where('userId', '==', userId), where('collegeId', '==', collegeId));

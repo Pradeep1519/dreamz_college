@@ -9,6 +9,8 @@ import { ApplicationPopup } from './ApplicationPopup';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { saveCollege, removeSavedCollege, isCollegeSaved } from '../../lib/firebase';
+import { useOffers } from '../hooks/useOffers';
+import { Offer } from '../../lib/offerService';
 
 interface CollegeDetailModalProps {
   isOpen: boolean;
@@ -31,6 +33,11 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
   
   const [collegeCourses, setCollegeCourses] = useState<any[]>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
+  
+  // Offer states
+  const { bestOffer } = useOffers({ location: 'college_page', autoFetch: true });
+  const [appliedOffer, setAppliedOffer] = useState<Offer | null>(null);
+  const [showOffer, setShowOffer] = useState(true);
 
   const userName = userData?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Guest';
 
@@ -538,7 +545,7 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                   )}
                 </div>
 
-                {/* Stats & Apply Section */}
+                {/* Stats & Apply Section - WITH OFFER IN REGISTRATION FEE */}
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 mb-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -556,10 +563,30 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                     <p className="text-xs text-gray-600">✅ Get 100% Full Refund* on Cancellation</p>
                     <p className="text-xs text-gray-600">✅ No Cost EMI Available</p>
                   </div>
+                  
+                  {/* ✅ REGISTRATION FEE WITH OFFER */}
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div>
                       <span className="text-xs text-gray-500">Registration Fee</span>
-                      <div className="text-2xl font-bold text-purple-600">₹10,000</div>
+                      {bestOffer && showOffer && !appliedOffer ? (
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm line-through text-gray-400">₹10,000</span>
+                            <span className="text-2xl font-bold text-purple-600">₹{bestOffer.discountedFee.toLocaleString()}</span>
+                          </div>
+                          <span className="text-xs text-green-600">Save ₹{(10000 - bestOffer.discountedFee).toLocaleString()}</span>
+                        </div>
+                      ) : appliedOffer ? (
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm line-through text-gray-400">₹10,000</span>
+                            <span className="text-2xl font-bold text-purple-600">₹{appliedOffer.discountedFee.toLocaleString()}</span>
+                          </div>
+                          <span className="text-xs text-green-600">🎉 Offer Applied!</span>
+                        </div>
+                      ) : (
+                        <div className="text-2xl font-bold text-purple-600">₹10,000</div>
+                      )}
                       <span className="text-xs text-gray-400">* One Time Payment</span>
                     </div>
                     <div className="flex gap-2">
@@ -577,13 +604,30 @@ export function CollegeDetailModal({ isOpen, onClose, college }: CollegeDetailMo
                           Already Applied
                         </button>
                       ) : (
-                        <button
-                          onClick={handleApplyNow}
-                          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all"
-                        >
-                          <Rocket className="w-4 h-4" />
-                          Apply Now
-                        </button>
+                        <div className="flex gap-2">
+                          {bestOffer && showOffer && !appliedOffer && (
+                            <button
+                              onClick={() => {
+                                setAppliedOffer(bestOffer);
+                                setShowOffer(false);
+                                setTimeout(() => {
+                                  setIsApplicationPopupOpen(true);
+                                }, 500);
+                              }}
+                              className="flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white rounded-lg font-semibold text-sm shadow-md hover:bg-red-600 transition-all"
+                            >
+                              <Rocket className="w-4 h-4" />
+                              Claim 50% OFF
+                            </button>
+                          )}
+                          <button
+                            onClick={handleApplyNow}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-semibold text-sm shadow-md hover:shadow-lg transition-all"
+                          >
+                            <Rocket className="w-4 h-4" />
+                            Apply Now
+                          </button>
+                        </div>
                       )}
                       <button
                         onClick={handleChatWithExpert}
