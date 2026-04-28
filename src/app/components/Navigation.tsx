@@ -17,14 +17,15 @@ interface NavigationProps {
   onPageChange: (page: string) => void;
 }
 
-// ✅ Admin emails list
+// Admin emails list
 const ADMIN_EMAILS = [
   'Juniordream2025@gmail.com',
   'admin@dreamzcollege.in',
-  'juniotdream3021@gmail.com'
+  'juniotdream3021@gmail.com',
+  'juniordream3021@gmail.com'
 ];
 
-// ✅ Universities Data for Popup
+// Universities Data for Popup
 const universitiesData = {
   'aktu': {
     id: 'aktu',
@@ -193,7 +194,7 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
   
   const { scrollY } = useScroll();
 
-  // ✅ Fetch offers for signin button
+  // Fetch offers for signin button
   const { offers } = useOffers({ location: 'login_popup', autoFetch: true });
   const signupOffer = offers.find(o => o.locations?.includes('login_popup') && o.isActive === true);
 
@@ -222,23 +223,18 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
     } else {
       setHasScrolled(false);
     }
-    
     const scrollDifference = Math.abs(latest - lastScrollY);
-    
     if (latest > lastScrollY && scrollDifference > 1 && latest > 50) {
       setIsVisible(false);
     } 
     else if (latest < lastScrollY && scrollDifference > 1) {
       setIsVisible(true);
     }
-    
     setLastScrollY(latest);
   });
 
   const handleNavigation = (pageId: string, path: string) => {
-    if (location.pathname === path) {
-      return;
-    }
+    if (location.pathname === path) return;
     onPageChange(pageId);
     navigate(path);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -253,9 +249,7 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
     } else {
       onPageChange('Home');
       navigate('/');
-      setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }, 100);
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
     }
     setIsMobileMenuOpen(false);
   };
@@ -296,19 +290,10 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
   return (
     <>
       <motion.nav 
-        animate={{ 
-          y: isVisible ? 0 : -100,
-          opacity: 1
-        }}
-        transition={{ 
-          type: "tween",
-          duration: 0.15,
-          ease: "easeOut"
-        }}
+        animate={{ y: isVisible ? 0 : -100, opacity: 1 }}
+        transition={{ type: "tween", duration: 0.15, ease: "easeOut" }}
         className={`fixed top-0 left-0 right-0 z-50 ${
-          hasScrolled 
-            ? 'bg-white/95 shadow-lg' 
-            : 'bg-white/90 shadow-md'
+          hasScrolled ? 'bg-white/95 shadow-lg' : 'bg-white/90 shadow-md'
         } border-b border-gray-200/20 backdrop-blur-sm`}
       >
         <motion.div 
@@ -373,9 +358,7 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
-                    isDropdownOpen 
-                      ? 'bg-purple-600 text-white shadow-md' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    isDropdownOpen ? 'bg-purple-600 text-white shadow-md' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   <span>Explore Programs</span>
@@ -392,6 +375,7 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                       className="absolute right-0 mt-3 w-[900px] xl:w-[1000px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50"
                     >
                       <div className="grid grid-cols-4 gap-4 p-6">
+                        {/* UG Programs */}
                         <div>
                           <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
                             <GraduationCap className="w-4 h-4 text-purple-600" />
@@ -400,21 +384,11 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                           </div>
                           <ul className="space-y-2">
                             {explorePrograms.ugPrograms.map((program, idx) => (
-                              <motion.li
-                                key={idx}
-                                whileHover={{ x: 5 }}
-                                className="cursor-pointer"
-                                onClick={() => {
-                                  handleNavigation(program.label, program.path);
-                                  setIsDropdownOpen(false);
-                                }}
-                              >
+                              <motion.li key={idx} whileHover={{ x: 5 }} className="cursor-pointer" onClick={() => { handleNavigation(program.label, program.path); setIsDropdownOpen(false); }}>
                                 <div className="flex items-center justify-between group">
                                   <div className="flex items-center gap-2">
                                     <program.icon className="w-3.5 h-3.5 text-gray-400 group-hover:text-purple-600" />
-                                    <span className="text-xs text-gray-700 group-hover:text-purple-600 transition-colors">
-                                      {program.label}
-                                    </span>
+                                    <span className="text-xs text-gray-700 group-hover:text-purple-600">{program.label}</span>
                                   </div>
                                   <ChevronRight className="w-3 h-3 text-gray-300 group-hover:text-purple-500" />
                                 </div>
@@ -423,6 +397,7 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                             ))}
                           </ul>
                         </div>
+                        {/* PG Programs */}
                         <div>
                           <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
                             <Briefcase className="w-4 h-4 text-blue-600" />
@@ -431,21 +406,11 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                           </div>
                           <ul className="space-y-2">
                             {explorePrograms.pgPrograms.map((program, idx) => (
-                              <motion.li
-                                key={idx}
-                                whileHover={{ x: 5 }}
-                                className="cursor-pointer"
-                                onClick={() => {
-                                  handleNavigation(program.label, program.path);
-                                  setIsDropdownOpen(false);
-                                }}
-                              >
+                              <motion.li key={idx} whileHover={{ x: 5 }} className="cursor-pointer" onClick={() => { handleNavigation(program.label, program.path); setIsDropdownOpen(false); }}>
                                 <div className="flex items-center justify-between group">
                                   <div className="flex items-center gap-2">
                                     <program.icon className="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-600" />
-                                    <span className="text-xs text-gray-700 group-hover:text-blue-600 transition-colors">
-                                      {program.label}
-                                    </span>
+                                    <span className="text-xs text-gray-700 group-hover:text-blue-600">{program.label}</span>
                                   </div>
                                   <ChevronRight className="w-3 h-3 text-gray-300 group-hover:text-blue-500" />
                                 </div>
@@ -454,6 +419,7 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                             ))}
                           </ul>
                         </div>
+                        {/* Diploma Programs */}
                         <div>
                           <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100">
                             <Laptop className="w-4 h-4 text-green-600" />
@@ -462,21 +428,11 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                           </div>
                           <ul className="space-y-2 mb-4">
                             {explorePrograms.diplomaPrograms.map((program, idx) => (
-                              <motion.li
-                                key={idx}
-                                whileHover={{ x: 5 }}
-                                className="cursor-pointer"
-                                onClick={() => {
-                                  handleNavigation(program.label, program.path);
-                                  setIsDropdownOpen(false);
-                                }}
-                              >
+                              <motion.li key={idx} whileHover={{ x: 5 }} className="cursor-pointer" onClick={() => { handleNavigation(program.label, program.path); setIsDropdownOpen(false); }}>
                                 <div className="flex items-center justify-between group">
                                   <div className="flex items-center gap-2">
                                     <program.icon className="w-3.5 h-3.5 text-gray-400 group-hover:text-green-600" />
-                                    <span className="text-xs text-gray-700 group-hover:text-green-600 transition-colors">
-                                      {program.label}
-                                    </span>
+                                    <span className="text-xs text-gray-700 group-hover:text-green-600">{program.label}</span>
                                   </div>
                                   <ChevronRight className="w-3 h-3 text-gray-300 group-hover:text-green-500" />
                                 </div>
@@ -491,21 +447,11 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                           </div>
                           <ul className="space-y-2">
                             {explorePrograms.otherPrograms.map((program, idx) => (
-                              <motion.li
-                                key={idx}
-                                whileHover={{ x: 5 }}
-                                className="cursor-pointer"
-                                onClick={() => {
-                                  handleNavigation(program.label, program.path);
-                                  setIsDropdownOpen(false);
-                                }}
-                              >
+                              <motion.li key={idx} whileHover={{ x: 5 }} className="cursor-pointer" onClick={() => { handleNavigation(program.label, program.path); setIsDropdownOpen(false); }}>
                                 <div className="flex items-center justify-between group">
                                   <div className="flex items-center gap-2">
                                     <program.icon className="w-3.5 h-3.5 text-gray-400 group-hover:text-orange-600" />
-                                    <span className="text-xs text-gray-700 group-hover:text-orange-600 transition-colors">
-                                      {program.label}
-                                    </span>
+                                    <span className="text-xs text-gray-700 group-hover:text-orange-600">{program.label}</span>
                                   </div>
                                   <ChevronRight className="w-3 h-3 text-gray-300 group-hover:text-orange-500" />
                                 </div>
@@ -514,6 +460,7 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                             ))}
                           </ul>
                         </div>
+                        {/* Top Universities */}
                         <div className="border-l border-gray-100 pl-4">
                           <div className="mb-4">
                             <h4 className="font-bold text-gray-800 text-sm mb-2 flex items-center gap-2">
@@ -521,30 +468,10 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                               Top Universities
                             </h4>
                             <ul className="space-y-1">
-                              <li 
-                                onClick={() => handleUniversityClick('aktu')}
-                                className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50"
-                              >
-                                AKTU, Lucknow
-                              </li>
-                              <li 
-                                onClick={() => handleUniversityClick('ccsu')}
-                                className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50"
-                              >
-                                CCSU, Meerut
-                              </li>
-                              <li 
-                                onClick={() => handleUniversityClick('ggsipu')}
-                                className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50"
-                              >
-                                GGSIPU, Delhi
-                              </li>
-                              <li 
-                                onClick={() => handleUniversityClick('upbte')}
-                                className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50"
-                              >
-                                UPBTE, Lucknow
-                              </li>
+                              <li onClick={() => handleUniversityClick('aktu')} className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50">AKTU, Lucknow</li>
+                              <li onClick={() => handleUniversityClick('ccsu')} className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50">CCSU, Meerut</li>
+                              <li onClick={() => handleUniversityClick('ggsipu')} className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50">GGSIPU, Delhi</li>
+                              <li onClick={() => handleUniversityClick('upbte')} className="text-xs text-gray-600 hover:text-purple-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-purple-50">UPBTE, Lucknow</li>
                             </ul>
                           </div>
                         </div>
@@ -554,43 +481,98 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                 </AnimatePresence>
               </div>
 
-              {/* ✅ SIGN IN BUTTON - WITH OFFER INSIDE */}
+              {/* SIGN IN / USER MENU */}
               <div className="relative" ref={userMenuRef}>
                 {user ? (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-purple-100 to-blue-100 text-gray-700 rounded-full font-medium text-xs md:text-sm shadow-sm hover:shadow-md transition-all"
-                  >
-                    <User className="w-4 h-4 text-purple-600" />
-                    <span className="max-w-[80px] truncate">{userData?.name?.split(' ')[0] || 'User'}</span>
-                    <ChevronDown className={`w-3 h-3 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
-                  </motion.button>
+                  // User Logged In - User menu button with dropdown
+                  <div>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setShowUserMenu(!showUserMenu)}
+                      className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-purple-100 to-blue-100 text-gray-700 rounded-full font-medium text-xs md:text-sm shadow-sm hover:shadow-md transition-all"
+                    >
+                      <User className="w-4 h-4 text-purple-600" />
+                      <span className="max-w-[80px] truncate">{userData?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'User'}</span>
+                      <ChevronDown className={`w-3 h-3 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+                    </motion.button>
+                    
+                    {/* Dropdown Menu */}
+                    <AnimatePresence>
+                      {showUserMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden z-50"
+                        >
+                          <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-blue-50">
+                            <p className="text-sm font-semibold text-gray-900">{userData?.name || 'User'}</p>
+                            <p className="text-xs text-gray-500 truncate">{userData?.email || user?.email || user?.phoneNumber}</p>
+                          </div>
+                          
+                          {isAdmin && (
+                            <button
+                              onClick={() => {
+                                navigate('/admin/dashboard');
+                                setShowUserMenu(false);
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm text-purple-600 hover:bg-purple-50 flex items-center gap-3 border-b border-gray-100 transition-colors"
+                            >
+                              <Shield className="w-4 h-4" />
+                              <span>Admin Panel</span>
+                            </button>
+                          )}
+                          
+                          <button
+                            onClick={() => {
+                              navigate('/dashboard');
+                              setShowUserMenu(false);
+                            }}
+                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                          >
+                            <User className="w-4 h-4" />
+                            <span>My Dashboard</span>
+                          </button>
+                          
+                          <button
+                            onClick={handleLogout}
+                            className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors border-t border-gray-100"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            <span>Sign Out</span>
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 ) : (
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleSignIn}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-medium text-sm shadow-md hover:shadow-lg transition-all relative"
-                  >
-                    <User className="w-4 h-4" />
-                    <span>Sign In</span>
-                    {/* ✅ 50% OFF badge inside button */}
-                    {signupOffer && (
-                      <motion.span
-                        animate={{ opacity: [1, 0.5, 1] }}
-                        transition={{ duration: 1, repeat: Infinity, repeatType: "loop" }}
-                        className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-md"
-                      >
-                        50% OFF
-                      </motion.span>
-                    )}
-                  </motion.button>
+                  // User NOT Logged In - Sign In button
+                  <div>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleSignIn}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-medium text-sm shadow-md hover:shadow-lg transition-all relative"
+                    >
+                      <User className="w-4 h-4" />
+                      <span>Sign In</span>
+                      {signupOffer && (
+                        <motion.span
+                          animate={{ opacity: [1, 0.5, 1] }}
+                          transition={{ duration: 1, repeat: Infinity, repeatType: "loop" }}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-md"
+                        >
+                          50% OFF
+                        </motion.span>
+                      )}
+                    </motion.button>
+                  </div>
                 )}
               </div>
 
-              {/* ✅ FREE COUNSELING BUTTON - Hidden on mobile, visible on desktop */}
+              {/* FREE COUNSELING BUTTON */}
               <motion.button 
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -601,16 +583,12 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                 <span>Free Counseling</span>
               </motion.button>
 
-              {/* ✅ MOBILE MENU BUTTON - 3 lines, visible only on mobile */}
+              {/* MOBILE MENU BUTTON */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="lg:hidden w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gray-100 flex items-center justify-center"
               >
-                {isMobileMenuOpen ? (
-                  <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                ) : (
-                  <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                )}
+                {isMobileMenuOpen ? <X className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" /> : <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />}
               </button>
             </div>
           </div>
@@ -626,18 +604,13 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                 className="lg:hidden mt-3 py-3 border-t border-gray-200 bg-white rounded-b-2xl shadow-lg"
               >
                 <div className="flex flex-col max-h-[70vh] overflow-y-auto">
-                  
                   {user ? (
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-medium text-gray-900">👋 Namaste, {userData?.name?.split(' ')[0]}</p>
                       <div className="flex flex-col gap-2 mt-2">
                         {isAdmin && (
-                          <button
-                            onClick={() => { navigate('/admin/dashboard'); setIsMobileMenuOpen(false); }}
-                            className="w-full py-2 bg-purple-100 text-purple-700 rounded-lg text-sm flex items-center justify-center gap-2"
-                          >
-                            <Shield className="w-4 h-4" />
-                            Admin Panel
+                          <button onClick={() => { navigate('/admin/dashboard'); setIsMobileMenuOpen(false); }} className="w-full py-2 bg-purple-100 text-purple-700 rounded-lg text-sm flex items-center justify-center gap-2">
+                            <Shield className="w-4 h-4" /> Admin Panel
                           </button>
                         )}
                         <div className="flex gap-2">
@@ -648,37 +621,25 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                     </div>
                   ) : (
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <button
-                        onClick={() => { handleSignIn(); setIsMobileMenuOpen(false); }}
-                        className="w-full py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-sm relative"
-                      >
+                      <button onClick={() => { handleSignIn(); setIsMobileMenuOpen(false); }} className="w-full py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-sm relative">
                         Sign In / Sign Up
                         {signupOffer && (
-                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full">
-                            50% OFF
-                          </span>
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full">50% OFF</span>
                         )}
                       </button>
                     </div>
                   )}
                   
+                  {/* Mobile Dropdown */}
                   <div className="border-b border-gray-100">
-                    <button
-                      onClick={() => setIsMobileDropdownOpen(!isMobileDropdownOpen)}
-                      className="w-full px-5 py-3 text-left flex items-center justify-between text-gray-700 font-medium"
-                    >
+                    <button onClick={() => setIsMobileDropdownOpen(!isMobileDropdownOpen)} className="w-full px-5 py-3 text-left flex items-center justify-between text-gray-700 font-medium">
                       <span>Explore Programs</span>
                       <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isMobileDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
                     
                     <AnimatePresence>
                       {isMobileDropdownOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="bg-gray-50"
-                        >
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="bg-gray-50">
                           <div className="p-3">
                             <div className="flex items-center gap-2 mb-2">
                               <GraduationCap className="w-4 h-4 text-purple-600" />
@@ -686,16 +647,8 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                               <PremiumTag text="After 12th" variant="purple" />
                             </div>
                             {explorePrograms.ugPrograms.map((program, idx) => (
-                              <button
-                                key={idx}
-                                onClick={() => {
-                                  handleNavigation(program.label, program.path);
-                                  setIsMobileDropdownOpen(false);
-                                }}
-                                className="w-full px-4 py-2 text-left text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2 rounded-lg"
-                              >
-                                <program.icon className="w-4 h-4" />
-                                {program.label}
+                              <button key={idx} onClick={() => { handleNavigation(program.label, program.path); setIsMobileDropdownOpen(false); }} className="w-full px-4 py-2 text-left text-sm text-gray-600 hover:bg-purple-50 hover:text-purple-600 transition-colors flex items-center gap-2 rounded-lg">
+                                <program.icon className="w-4 h-4" /> {program.label}
                               </button>
                             ))}
                             
@@ -705,16 +658,8 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                               <PremiumTag text="After Graduation" variant="blue" />
                             </div>
                             {explorePrograms.pgPrograms.map((program, idx) => (
-                              <button
-                                key={idx}
-                                onClick={() => {
-                                  handleNavigation(program.label, program.path);
-                                  setIsMobileDropdownOpen(false);
-                                }}
-                                className="w-full px-4 py-2 text-left text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2 rounded-lg"
-                              >
-                                <program.icon className="w-4 h-4" />
-                                {program.label}
+                              <button key={idx} onClick={() => { handleNavigation(program.label, program.path); setIsMobileDropdownOpen(false); }} className="w-full px-4 py-2 text-left text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2 rounded-lg">
+                                <program.icon className="w-4 h-4" /> {program.label}
                               </button>
                             ))}
                             
@@ -724,16 +669,8 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                               <PremiumTag text="After 10th/12th" variant="green" />
                             </div>
                             {explorePrograms.diplomaPrograms.map((program, idx) => (
-                              <button
-                                key={idx}
-                                onClick={() => {
-                                  handleNavigation(program.label, program.path);
-                                  setIsMobileDropdownOpen(false);
-                                }}
-                                className="w-full px-4 py-2 text-left text-sm text-gray-600 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2 rounded-lg"
-                              >
-                                <program.icon className="w-4 h-4" />
-                                {program.label}
+                              <button key={idx} onClick={() => { handleNavigation(program.label, program.path); setIsMobileDropdownOpen(false); }} className="w-full px-4 py-2 text-left text-sm text-gray-600 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2 rounded-lg">
+                                <program.icon className="w-4 h-4" /> {program.label}
                               </button>
                             ))}
                             
@@ -743,16 +680,8 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                               <PremiumTag text="Special" variant="orange" />
                             </div>
                             {explorePrograms.otherPrograms.map((program, idx) => (
-                              <button
-                                key={idx}
-                                onClick={() => {
-                                  handleNavigation(program.label, program.path);
-                                  setIsMobileDropdownOpen(false);
-                                }}
-                                className="w-full px-4 py-2 text-left text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition-colors flex items-center gap-2 rounded-lg"
-                              >
-                                <program.icon className="w-4 h-4" />
-                                {program.label}
+                              <button key={idx} onClick={() => { handleNavigation(program.label, program.path); setIsMobileDropdownOpen(false); }} className="w-full px-4 py-2 text-left text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-600 transition-colors flex items-center gap-2 rounded-lg">
+                                <program.icon className="w-4 h-4" /> {program.label}
                               </button>
                             ))}
                           </div>
@@ -763,15 +692,8 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
                   
                   <div className="border-t border-gray-100 my-2"></div>
                   
-                  <button
-                    onClick={() => {
-                      setIsBookingModalOpen(true);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="mx-4 my-2 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium text-sm"
-                  >
-                    <Phone className="w-4 h-4" />
-                    <span>Book Free Counseling</span>
+                  <button onClick={() => { setIsBookingModalOpen(true); setIsMobileMenuOpen(false); }} className="mx-4 my-2 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium text-sm">
+                    <Phone className="w-4 h-4" /> Book Free Counseling
                   </button>
                 </div>
               </motion.div>
@@ -780,23 +702,9 @@ export function Navigation({ activePage, onPageChange }: NavigationProps) {
         </div>
       </motion.nav>
 
-      <BookingModal
-        isOpen={isBookingModalOpen}
-        onClose={() => setIsBookingModalOpen(false)}
-        onBookingComplete={handleBookingComplete}
-      />
-
-      <Login
-        isOpen={isLoginOpen}
-        onClose={() => setIsLoginOpen(false)}
-        onLoginSuccess={handleLoginSuccess}
-      />
-
-      <UniversityDetailModal
-        isOpen={isUniversityModalOpen}
-        onClose={() => setIsUniversityModalOpen(false)}
-        university={selectedUniversity}
-      />
+      <BookingModal isOpen={isBookingModalOpen} onClose={() => setIsBookingModalOpen(false)} onBookingComplete={handleBookingComplete} />
+      <Login isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onLoginSuccess={handleLoginSuccess} />
+      <UniversityDetailModal isOpen={isUniversityModalOpen} onClose={() => setIsUniversityModalOpen(false)} university={selectedUniversity} />
     </>
   );
 }
