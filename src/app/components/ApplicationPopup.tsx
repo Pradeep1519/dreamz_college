@@ -24,7 +24,7 @@ interface ApplicationPopupProps {
 // Boards list
 const boards = [
   'CBSE', 'ICSE', 'UP Board', 'Bihar Board', 'Rajasthan Board', 'MP Board',
-  'Haryana Board', 'Punjab Board', 'West Bengal Board', 'Maharashtra Board',
+  'Haryana Board', 'Punjab Board', 'Maharashtra Board',
   'Tamil Nadu Board', 'Karnataka Board', 'Other State Board', 'International Board (IB/IGCSE)'
 ];
 
