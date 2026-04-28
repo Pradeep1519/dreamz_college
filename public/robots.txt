@@ -2,8 +2,15 @@
 User-agent: *
 Allow: /
 
+# Disallow admin routes (optional)
+Disallow: /admin/
+Disallow: /admin-login
+
 # Sitemap location
 Sitemap: https://dreamzcollege.in/sitemap.xml
+
+# Crawl delay (gentle crawling)
+Crawl-delay: 1
 
 # Host
 Host: https://dreamzcollege.in
