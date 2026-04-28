@@ -8,7 +8,7 @@ import {
   CheckCircle, XCircle, Clock, AlertCircle,
   Star, UserPlus, MessageSquare, Share2,
   ThumbsUp, TrendingUp, Award, Target, School, GraduationCap,
-  Building, BookOpen, Gift, Zap, Shield
+  Building, BookOpen, Gift, Zap, Shield, Monitor, AlertTriangle
 } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { collection, getDocs, updateDoc, doc, query, orderBy } from 'firebase/firestore';
