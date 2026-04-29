@@ -252,36 +252,24 @@ export function Login({ isOpen = true, onClose, onLoginSuccess }: LoginProps) {
     setPhone('');
     setLocation('');
     setSigninEmail('');
-    
-    // Reset offer when switching modes - offer will show again
     setShowOffer(true);
     setOfferClaimed(false);
   };
 
-  // ✅ Handle Claim Now button click - NO auto mode switch
   const handleClaimOffer = () => {
-    // Show confirmation message
     setOfferClaimed(true);
-    
-    // Focus on appropriate field based on current mode (no mode switch)
     if (mode === 'signup') {
-      // Signup mode: focus on name field
       setTimeout(() => {
         const nameInput = document.querySelector('input[placeholder="Enter your full name"]') as HTMLInputElement;
         if (nameInput) nameInput.focus();
       }, 100);
     } else {
-      // Signin mode: focus on email field
       setTimeout(() => {
         const emailInput = document.querySelector('input[placeholder="priya@example.com"]') as HTMLInputElement;
         if (emailInput) emailInput.focus();
       }, 100);
     }
-    
-    // Auto hide confirmation after 4 seconds
-    setTimeout(() => {
-      setOfferClaimed(false);
-    }, 4000);
+    setTimeout(() => setOfferClaimed(false), 4000);
   };
 
   const getOfferDiscount = () => {
@@ -293,7 +281,9 @@ export function Login({ isOpen = true, onClose, onLoginSuccess }: LoginProps) {
 
   return (
     <AnimatePresence>
+      {/* Backdrop with unique key */}
       <motion.div
+        key="backdrop"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -301,17 +291,20 @@ export function Login({ isOpen = true, onClose, onLoginSuccess }: LoginProps) {
         className="fixed inset-0 bg-black/60 backdrop-blur-md z-50"
       />
       
+      {/* Modal with unique key */}
       <motion.div
+        key="modal"
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.2 }}
-        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-5xl z-50"
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-5xl z-50 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Close Button - Mobile friendly */}
         <button
           onClick={onClose}
-          className="absolute -top-10 right-0 lg:-right-10 lg:top-0 bg-white/10 hover:bg-white/20 rounded-full p-1.5 transition-colors"
+          className="absolute -top-12 right-0 lg:-right-12 lg:top-0 bg-white/20 hover:bg-white/30 rounded-full p-2 transition-colors z-10"
         >
           <X className="w-5 h-5 text-white" />
         </button>
@@ -319,7 +312,7 @@ export function Login({ isOpen = true, onClose, onLoginSuccess }: LoginProps) {
         <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 rounded-2xl overflow-hidden shadow-2xl">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             
-            {/* LEFT SIDE - Branding */}
+            {/* LEFT SIDE - Branding (Hidden on mobile) */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -381,7 +374,7 @@ export function Login({ isOpen = true, onClose, onLoginSuccess }: LoginProps) {
                 <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100 mt-auto">
                   <AnimatePresence mode="wait">
                     <motion.div
-                      key={currentTestimonial}
+                      key={testimonials[currentTestimonial].id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
@@ -417,70 +410,54 @@ export function Login({ isOpen = true, onClose, onLoginSuccess }: LoginProps) {
               </div>
             </motion.div>
 
-            {/* RIGHT SIDE - FORM */}
+            {/* RIGHT SIDE - FORM - Mobile responsive */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
-              className="bg-white p-6 md:p-8 flex flex-col justify-center min-h-[550px]"
+              className="bg-white p-5 sm:p-6 md:p-8 flex flex-col justify-center max-h-[80vh] overflow-y-auto"
             >
-              <div className="lg:hidden flex items-center justify-center gap-2 mb-6">
-                <img src={LOGO_URL} alt="Dreamz College" className="w-10 h-10 object-contain" />
+              <div className="lg:hidden flex items-center justify-center gap-2 mb-4">
+                <img src={LOGO_URL} alt="Dreamz College" className="w-8 h-8 object-contain" />
                 <div>
-                  <h1 className="text-lg font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Dreamz College</h1>
-                  <p className="text-[10px] text-gray-600 text-center">Learn from achievers to become one</p>
+                  <h1 className="text-base font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">Dreamz College</h1>
+                  <p className="text-[8px] text-gray-600 text-center">Learn from achievers to become one</p>
                 </div>
               </div>
 
               <div className="max-w-sm mx-auto w-full">
-                <div className="text-center mb-6">
+                <div className="text-center mb-5">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 500, delay: 0.1 }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 mb-3"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 mb-2"
                   >
-                    {mode === 'signup' ? <UserPlus className="w-3.5 h-3.5 text-purple-600" /> : <LogIn className="w-3.5 h-3.5 text-purple-600" />}
-                    <span className="text-[10px] font-semibold text-purple-700 uppercase tracking-wider">
+                    {mode === 'signup' ? <UserPlus className="w-3 h-3 text-purple-600" /> : <LogIn className="w-3 h-3 text-purple-600" />}
+                    <span className="text-[9px] font-semibold text-purple-700 uppercase tracking-wider">
                       {mode === 'signup' ? 'Join Free' : 'Welcome Back'}
                     </span>
-                    <Sparkles className="w-3 h-3 text-purple-500" />
+                    <Sparkles className="w-2.5 h-2.5 text-purple-500" />
                   </motion.div>
-                  <motion.h2
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 }}
-                    className="text-2xl font-bold mb-1"
-                  >
+                  <motion.h2 className="text-xl md:text-2xl font-bold mb-0.5">
                     <span className="bg-gradient-to-r from-purple-700 to-blue-600 bg-clip-text text-transparent">
                       {mode === 'signup' ? 'Create Account' : 'Sign In'}
                     </span>
                   </motion.h2>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: 40 }}
-                    transition={{ delay: 0.25, duration: 0.5 }}
-                    className="h-0.5 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto mb-2 rounded-full"
-                    style={{ width: 40 }}
-                  />
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2 }}
-                    className="text-xs text-gray-500"
-                  >
+                  <motion.div className="h-0.5 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto mb-2 rounded-full w-8" />
+                  <motion.p className="text-[11px] text-gray-500">
                     {mode === 'signup' ? 'Fill details to get started' : 'Enter your email to receive OTP'}
                   </motion.p>
                 </div>
 
                 {step === 'otp' ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <div className="text-center">
-                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <Lock className="w-8 h-8 text-green-600" />
+                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <Lock className="w-6 h-6 text-green-600" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900">Enter OTP</h3>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <h3 className="text-base font-semibold text-gray-900">Enter OTP</h3>
+                      <p className="text-[11px] text-gray-500 mt-1">
                         Enter the 6-digit code sent to <br />
                         <span className="font-medium text-purple-600">{mode === 'signup' ? email : signinEmail}</span>
                       </p>
@@ -492,36 +469,36 @@ export function Login({ isOpen = true, onClose, onLoginSuccess }: LoginProps) {
                         onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                         placeholder="000000"
                         maxLength={6}
-                        className="w-full text-center text-2xl tracking-widest py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full text-center text-xl tracking-widest py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
                         autoFocus
                       />
                     </div>
                     {error && (
                       <div className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
-                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        <AlertCircle className="w-3.5 h-3.5 text-red-500" />
                         <p className="text-xs text-red-600">{error}</p>
                       </div>
                     )}
                     {successMessage && (
                       <div className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <CheckCircle className="w-3.5 h-3.5 text-green-600" />
                         <p className="text-xs text-green-700">{successMessage}</p>
                       </div>
                     )}
                     <button
                       onClick={handleVerifyOTP}
                       disabled={loading || otp.length !== 6}
-                      className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                           Verifying...
                         </>
                       ) : (
                         <>
                           Verify & {mode === 'signup' ? 'Sign Up' : 'Sign In'}
-                          <CheckCircle className="w-4 h-4" />
+                          <CheckCircle className="w-3.5 h-3.5" />
                         </>
                       )}
                     </button>
@@ -533,72 +510,72 @@ export function Login({ isOpen = true, onClose, onLoginSuccess }: LoginProps) {
                           setError('');
                           setSuccessMessage('');
                         }}
-                        className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                        className="text-xs text-purple-600 font-medium"
                       >
                         ← Edit Email
                       </button>
                       <button
                         onClick={handleResendOTP}
                         disabled={resendTimer > 0}
-                        className="text-sm text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
+                        className="text-xs text-purple-600 font-medium disabled:opacity-50"
                       >
                         {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
                       </button>
                     </div>
-                    <p className="text-[10px] text-gray-400 text-center">
+                    <p className="text-[9px] text-gray-400 text-center">
                       Didn't receive OTP? Check your spam folder
                     </p>
                   </div>
                 ) : mode === 'signup' ? (
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Full Name *</label>
+                      <label className="block text-[11px] font-medium text-gray-700 mb-1">Full Name *</label>
                       <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                         <input
                           type="text"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           placeholder="Enter your full name"
-                          className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                          className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Email Address *</label>
+                      <label className="block text-[11px] font-medium text-gray-700 mb-1">Email Address *</label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                         <input
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="Enter your email"
-                          className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                          className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Mobile Number *</label>
+                      <label className="block text-[11px] font-medium text-gray-700 mb-1">Mobile Number *</label>
                       <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <span className="absolute left-10 top-1/2 -translate-y-1/2 text-gray-500 text-sm">+91</span>
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                        <span className="absolute left-9 top-1/2 -translate-y-1/2 text-gray-500 text-xs">+91</span>
                         <input
                           type="tel"
                           value={phone}
                           onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                           placeholder="Enter your mobile number"
-                          className="w-full pl-[72px] pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                          className="w-full pl-[68px] pr-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Location *</label>
+                      <label className="block text-[11px] font-medium text-gray-700 mb-1">Location *</label>
                       <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                         <select
                           value={location}
                           onChange={(e) => setLocation(e.target.value)}
-                          className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm appearance-none bg-white"
+                          className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm appearance-none bg-white"
                         >
                           <option value="">Select your city</option>
                           {locations.map((loc) => (
@@ -609,34 +586,34 @@ export function Login({ isOpen = true, onClose, onLoginSuccess }: LoginProps) {
                     </div>
                     {error && (
                       <div className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
-                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        <AlertCircle className="w-3.5 h-3.5 text-red-500" />
                         <p className="text-xs text-red-600">{error}</p>
                       </div>
                     )}
                     <button
                       onClick={handleSendSignupOTP}
                       disabled={loading}
-                      className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                           Sending OTP...
                         </>
                       ) : (
                         <>
                           Send OTP
-                          <Send className="w-4 h-4" />
+                          <Send className="w-3.5 h-3.5" />
                         </>
                       )}
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Email Address</label>
+                      <label className="block text-[11px] font-medium text-gray-700 mb-1">Email Address</label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                         <input
                           type="email"
                           value={signinEmail}
@@ -646,104 +623,98 @@ export function Login({ isOpen = true, onClose, onLoginSuccess }: LoginProps) {
                             setSuccessMessage('');
                           }}
                           placeholder="priya@example.com"
-                          className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                          className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
                         />
                       </div>
                     </div>
                     {error && (
                       <div className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
-                        <AlertCircle className="w-4 h-4 text-red-500" />
+                        <AlertCircle className="w-3.5 h-3.5 text-red-500" />
                         <p className="text-xs text-red-600">{error}</p>
                       </div>
                     )}
                     <button
                       onClick={handleSendSigninOTP}
                       disabled={loading || !validateEmail(signinEmail)}
-                      className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold shadow-md hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                           Sending OTP...
                         </>
                       ) : (
                         <>
                           Send OTP
-                          <Send className="w-4 h-4" />
+                          <Send className="w-3.5 h-3.5" />
                         </>
                       )}
                     </button>
                   </div>
                 )}
 
-                {/* ✅ PROFESSIONAL OFFER BANNER - Shows in BOTH modes */}
+                {/* Offer Banner - Mobile optimized */}
                 {loginOffer && showOffer && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.4 }}
-                    className="mt-4"
+                    className="mt-3"
                   >
-                    <div className="relative bg-gradient-to-r from-red-50 via-orange-50 to-pink-50 rounded-xl p-3 border border-red-200 shadow-sm overflow-hidden">
-                      <motion.div
-                        animate={{ x: ['0%', '100%', '0%'] }}
-                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
-                      />
-                      
-                      <div className="relative flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center shadow-lg">
-                            <Gift className="w-5 h-5 text-white" />
+                    <div className="relative bg-gradient-to-r from-red-50 via-orange-50 to-pink-50 rounded-xl p-2.5 border border-red-200 shadow-sm overflow-hidden">
+                      <div className="relative flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center">
+                            <Gift className="w-4 h-4 text-white" />
                           </div>
                           <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded-full">
-                                LIMITED TIME
+                            <div className="flex items-center gap-1">
+                              <span className="text-[9px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded-full">
+                                LIMITED
                               </span>
-                              <span className="text-[8px] text-gray-500">
-                                Valid till {new Date(loginOffer.validTill).toLocaleDateString()}
+                              <span className="text-[7px] text-gray-500">
+                                {new Date(loginOffer.validTill).toLocaleDateString()}
                               </span>
                             </div>
-                            <p className="text-sm font-bold text-gray-800 mt-0.5">
+                            <p className="text-[11px] font-bold text-gray-800 mt-0.5 line-clamp-1">
                               {loginOffer.name}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs line-through text-gray-400">₹{loginOffer.originalFee.toLocaleString()}</span>
-                            <span className="text-lg font-bold text-red-600">₹{loginOffer.discountedFee.toLocaleString()}</span>
+                          <div className="flex items-center gap-0.5">
+                            <span className="text-[9px] line-through text-gray-400">₹{loginOffer.originalFee.toLocaleString()}</span>
+                            <span className="text-sm font-bold text-red-600">₹{loginOffer.discountedFee.toLocaleString()}</span>
                           </div>
-                          <p className="text-[9px] text-green-600 font-semibold">
+                          <p className="text-[7px] font-semibold text-green-600">
                             Save ₹{getOfferDiscount().toLocaleString()}
                           </p>
                         </div>
                       </div>
                       
-                      <div className="relative mt-2 flex items-center justify-between">
+                      <div className="relative mt-1.5 flex items-center justify-between">
                         <div className="flex items-center gap-1">
-                          <Zap className="w-3 h-3 text-orange-500" />
-                          <p className="text-[8px] text-gray-500">Limited seats available</p>
+                          <Zap className="w-2.5 h-2.5 text-orange-500" />
+                          <p className="text-[7px] text-gray-500">Limited seats</p>
                         </div>
                         
                         {offerClaimed ? (
                           <motion.div
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="flex items-center gap-1.5 bg-green-100 px-2 py-1 rounded-full"
+                            className="flex items-center gap-1 bg-green-100 px-1.5 py-0.5 rounded-full"
                           >
-                            <CheckCircle className="w-3 h-3 text-green-600" />
-                            <span className="text-[8px] font-semibold text-green-700">
-                              {mode === 'signup' ? 'Claimed! Complete Signup' : 'Claimed! Complete Signin'}
+                            <CheckCircle className="w-2.5 h-2.5 text-green-600" />
+                            <span className="text-[7px] font-semibold text-green-700">
+                              Claimed!
                             </span>
                           </motion.div>
                         ) : (
                           <button
                             onClick={handleClaimOffer}
-                            className="text-[8px] font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 px-2 py-1 rounded-full hover:shadow-md transition-all"
+                            className="text-[7px] font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 px-2 py-0.5 rounded-full"
                           >
-                            Claim Now →
+                            Claim →
                           </button>
                         )}
                       </div>
@@ -751,38 +722,38 @@ export function Login({ isOpen = true, onClose, onLoginSuccess }: LoginProps) {
                   </motion.div>
                 )}
 
-                <div className="mt-4 text-center">
-                  <p className="text-xs text-gray-500">
+                <div className="mt-3 text-center">
+                  <p className="text-[10px] text-gray-500">
                     {mode === 'signup' ? 'Already have an account?' : "Don't have an account?"}
                     {' '}
-                    <button onClick={switchMode} className="text-purple-600 font-medium hover:underline">
+                    <button onClick={switchMode} className="text-purple-600 font-medium text-[10px]">
                       {mode === 'signup' ? 'Sign In →' : 'Sign Up →'}
                     </button>
                   </p>
                 </div>
 
-                <div className="lg:hidden mt-4 pt-3 border-t border-gray-200">
-                  <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="lg:hidden mt-3 pt-2 border-t border-gray-200">
+                  <div className="grid grid-cols-3 gap-1 text-center">
                     <div>
-                      <div className="text-base font-bold text-purple-600">25+</div>
-                      <div className="text-[10px] text-gray-500">Colleges</div>
+                      <div className="text-xs font-bold text-purple-600">25+</div>
+                      <div className="text-[8px] text-gray-500">Colleges</div>
                     </div>
                     <div>
-                      <div className="text-base font-bold text-blue-600">50K+</div>
-                      <div className="text-[10px] text-gray-500">Students</div>
+                      <div className="text-xs font-bold text-blue-600">50K+</div>
+                      <div className="text-[8px] text-gray-500">Students</div>
                     </div>
                     <div>
-                      <div className="text-base font-bold text-green-600">FREE</div>
-                      <div className="text-[10px] text-gray-500">Counseling</div>
+                      <div className="text-xs font-bold text-green-600">FREE</div>
+                      <div className="text-[8px] text-gray-500">Counseling</div>
                     </div>
                   </div>
                 </div>
 
-                <p className="text-[9px] text-gray-400 text-center mt-3">
+                <p className="text-[7px] text-gray-400 text-center mt-2">
                   By continuing, you agree to Dreamz College's{' '}
-                  <a href="/terms-of-service" className="text-purple-600 hover:underline mx-0.5">Terms</a>
-                  and{' '}
-                  <a href="/privacy-policy" className="text-purple-600 hover:underline ml-0.5">Privacy Policy</a>
+                  <a href="/terms-of-service" className="text-purple-600 hover:underline">Terms</a>
+                  {' '}and{' '}
+                  <a href="/privacy-policy" className="text-purple-600 hover:underline">Privacy</a>
                 </p>
               </div>
             </motion.div>
