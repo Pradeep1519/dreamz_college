@@ -140,31 +140,31 @@ export function CollegesPage() {
     }
   };
 
+  // 🔥 FIXED: No auto-selection from URL params
   useEffect(() => {
     const course = searchParams.get('course');
     if (course) {
-      const formattedCourse = course.toUpperCase();
-      setSelectedCourse(formattedCourse);
+      // Don't auto-select course - just show all colleges
+      setSelectedCourse('');
+      // Clear the URL parameter
+      setSearchParams({});
     }
-  }, [searchParams]);
+  }, [searchParams, setSearchParams]);
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  // 🔥 FIXED: No course filter - show all colleges
   const filteredColleges = useMemo(() => {
     return colleges.filter(college => {
-      const matchesCourse = selectedCourse
-        ? college.courses?.some(c => c.toLowerCase().includes(selectedCourse.toLowerCase()))
-        : true;
-
       const matchesSearch = searchTerm === '' ||
         college.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         college.location?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      return matchesCourse && matchesSearch;
+      return matchesSearch;
     });
-  }, [selectedCourse, searchTerm, colleges]);
+  }, [searchTerm, colleges]);
 
   const sortedColleges = useMemo(() => {
     const sorted = [...filteredColleges];
@@ -191,10 +191,14 @@ export function CollegesPage() {
   const handleCourseSelect = useCallback((course: string) => {
     const newSelected = selectedCourse === course ? '' : course;
     setSelectedCourse(newSelected);
-    setSearchParams(newSelected ? { course: newSelected.toLowerCase() } : {});
+    if (newSelected) {
+      setSearchParams({ course: newSelected.toLowerCase() });
+    } else {
+      setSearchParams({});
+    }
   }, [selectedCourse, setSearchParams]);
 
-  // ✅ College Click Handler - Opens Login Popup if not logged in
+  // College Click Handler - Opens Login Popup if not logged in
   const handleCollegeClick = useCallback((college: College) => {
     if (!user) {
       setPendingCollege(college);
@@ -206,7 +210,7 @@ export function CollegesPage() {
     setIsModalOpen(true);
   }, [user]);
 
-  // ✅ Handle login success - open pending college modal
+  // Handle login success - open pending college modal
   const handleLoginSuccess = () => {
     setIsLoginOpen(false);
     if (pendingCollege) {
@@ -252,15 +256,6 @@ export function CollegesPage() {
                 <p className="text-sm text-gray-600">
                   Compare fees, placements, and choose your dream college
                 </p>
-                {selectedCourse && (
-                  <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm">
-                    <CheckSquare className="w-4 h-4" />
-                    <span>Filtered by: <strong>{selectedCourse}</strong></span>
-                    <button onClick={() => handleCourseSelect(selectedCourse)} className="ml-1 hover:bg-purple-200 rounded-full p-0.5 transition-colors">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
               </div>
               <div className="flex gap-8">
                 <div className="text-center">

@@ -117,28 +117,29 @@ const universitiesData = {
   }
 };
 
+// 🔥 FIXED: Removed ?course parameters - direct navigation to colleges page
 const explorePrograms = {
   ugPrograms: [
-    { label: 'Engineering (B.Tech)', icon: Laptop, path: '/colleges?course=B.Tech', description: '4 Years • Full Time' },
-    { label: 'Management (BBA)', icon: Briefcase, path: '/colleges?course=BBA', description: '3 Years • Full Time' },
-    { label: 'Computer Applications (BCA)', icon: GraduationCap, path: '/colleges?course=BCA', description: '3 Years • Full Time' },
-    { label: 'Commerce (B.Com)', icon: Scale, path: '/colleges?course=B.Com', description: '3 Years • Full Time' },
-    { label: 'Law (BA LLB)', icon: Scale, path: '/colleges?course=Law', description: '5 Years • Integrated' },
-    { label: 'Nursing (B.Sc)', icon: Heart, path: '/colleges?course=Nursing', description: '4 Years • Full Time' },
-    { label: 'Pharmacy (B.Pharm)', icon: Microscope, path: '/colleges?course=B.Pharm', description: '4 Years • Full Time' },
+    { label: 'Engineering (B.Tech)', icon: Laptop, path: '/colleges', description: '4 Years • Full Time' },
+    { label: 'Management (BBA)', icon: Briefcase, path: '/colleges', description: '3 Years • Full Time' },
+    { label: 'Computer Applications (BCA)', icon: GraduationCap, path: '/colleges', description: '3 Years • Full Time' },
+    { label: 'Commerce (B.Com)', icon: Scale, path: '/colleges', description: '3 Years • Full Time' },
+    { label: 'Law (BA LLB)', icon: Scale, path: '/colleges', description: '5 Years • Integrated' },
+    { label: 'Nursing (B.Sc)', icon: Heart, path: '/colleges', description: '4 Years • Full Time' },
+    { label: 'Pharmacy (B.Pharm)', icon: Microscope, path: '/colleges', description: '4 Years • Full Time' },
   ],
   pgPrograms: [
-    { label: 'MBA (Master of Business)', icon: Briefcase, path: '/colleges?course=MBA', description: '2 Years • Full Time' },
-    { label: 'MCA (Computer Applications)', icon: GraduationCap, path: '/colleges?course=MCA', description: '2 Years • Full Time' },
-    { label: 'M.Tech (Engineering)', icon: Laptop, path: '/colleges?course=M.Tech', description: '2 Years • Full Time' },
-    { label: 'LLM (Law)', icon: Scale, path: '/colleges?course=LLM', description: '2 Years • Full Time' },
-    { label: 'M.Sc Nursing', icon: Heart, path: '/colleges?course=M.Sc', description: '2 Years • Full Time' },
-    { label: 'M.Pharm', icon: Microscope, path: '/colleges?course=M.Pharm', description: '2 Years • Full Time' },
+    { label: 'MBA (Master of Business)', icon: Briefcase, path: '/colleges', description: '2 Years • Full Time' },
+    { label: 'MCA (Computer Applications)', icon: GraduationCap, path: '/colleges', description: '2 Years • Full Time' },
+    { label: 'M.Tech (Engineering)', icon: Laptop, path: '/colleges', description: '2 Years • Full Time' },
+    { label: 'LLM (Law)', icon: Scale, path: '/colleges', description: '2 Years • Full Time' },
+    { label: 'M.Sc Nursing', icon: Heart, path: '/colleges', description: '2 Years • Full Time' },
+    { label: 'M.Pharm', icon: Microscope, path: '/colleges', description: '2 Years • Full Time' },
   ],
   diplomaPrograms: [
-    { label: 'Polytechnic Diploma', icon: Laptop, path: '/colleges?course=Diploma', description: '3 Years • Full Time' },
-    { label: 'D.Pharm', icon: Microscope, path: '/colleges?course=D.Pharm', description: '2 Years • Full Time' },
-    { label: 'GNM', icon: Heart, path: '/colleges?course=GNM', description: '3.5 Years • Full Time' },
+    { label: 'Polytechnic Diploma', icon: Laptop, path: '/colleges', description: '3 Years • Full Time' },
+    { label: 'D.Pharm', icon: Microscope, path: '/colleges', description: '2 Years • Full Time' },
+    { label: 'GNM', icon: Heart, path: '/colleges', description: '3.5 Years • Full Time' },
   ],
   otherPrograms: [
     { label: 'Online Programs', icon: Laptop, path: '/online-programs', description: 'Flexible Learning' },
