@@ -1,14 +1,27 @@
 // src/app/components/HeroSection.tsx
 
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { ArrowRight, Play, Sparkles, Sun, Moon, Cloud, Heart, Gift, Tag, Zap, TrendingUp, Star, Shield, Crown, Rocket, Award, Users } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { BookingModal } from './BookingModal';
 import { useAuth } from '../../context/AuthContext';
-import { AnimatePresence } from 'motion/react';
 import { useOffers } from '../hooks/useOffers';
 import { useNavigate } from 'react-router-dom';
+
+// Student initials data with names and colors
+const studentInitials = [
+  { initial: 'R', name: 'Rahul Sharma', color: 'from-purple-500 to-pink-500' },
+  { initial: 'P', name: 'Priya Verma', color: 'from-blue-500 to-cyan-500' },
+  { initial: 'S', name: 'Sneha Gupta', color: 'from-green-500 to-emerald-500' },
+  { initial: 'A', name: 'Amit Singh', color: 'from-orange-500 to-red-500' },
+  { initial: 'M', name: 'Meera Patel', color: 'from-indigo-500 to-purple-500' },
+  { initial: 'K', name: 'Kunal Malhotra', color: 'from-pink-500 to-rose-500' },
+  { initial: 'N', name: 'Neha Sharma', color: 'from-cyan-500 to-blue-500' },
+  { initial: 'V', name: 'Vikram Singh', color: 'from-emerald-500 to-green-500' },
+  { initial: 'T', name: 'Tanvi Gupta', color: 'from-red-500 to-orange-500' },
+  { initial: 'D', name: 'Divya Khanna', color: 'from-violet-500 to-purple-500' }
+];
 
 export function HeroSection() {
   const navigate = useNavigate();
@@ -17,6 +30,8 @@ export function HeroSection() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [wordIndex, setWordIndex] = useState(0);
   const [welcomeIndex, setWelcomeIndex] = useState(0);
+  const [currentStudentIndex, setCurrentStudentIndex] = useState(0);
+  const [visibleStudents, setVisibleStudents] = useState(studentInitials.slice(0, 5));
   const { user, userData } = useAuth();
   
   // Fetch offers for hero banner
@@ -100,6 +115,25 @@ export function HeroSection() {
     return () => clearInterval(interval);
   }, [user, welcomeMessages.length]);
 
+  // Auto-slide effect for student initials (3 seconds)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentStudentIndex((prev) => (prev + 1) % studentInitials.length);
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update visible students when index changes (show 5 at a time)
+  useEffect(() => {
+    const visible = [];
+    for (let i = 0; i < 5; i++) {
+      const idx = (currentStudentIndex + i) % studentInitials.length;
+      visible.push(studentInitials[idx]);
+    }
+    setVisibleStudents(visible);
+  }, [currentStudentIndex]);
+
   const currentWelcome = welcomeMessages[welcomeIndex];
 
   // Handle offer click - redirect to colleges page
@@ -120,7 +154,7 @@ export function HeroSection() {
         <div className="relative max-w-7xl mx-auto px-6 py-32 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left: Content */}
           <div>
-            {/* 🔥 PREMIUM HERO OFFER CARD */}
+            {/* Premium Hero Offer Card */}
             {heroOffer && (
               <motion.div
                 initial={{ opacity: 0, x: -50, scale: 0.9 }}
@@ -142,7 +176,6 @@ export function HeroSection() {
                   className="relative bg-gradient-to-r from-purple-600 via-pink-500 to-orange-500 rounded-2xl p-[2px] shadow-2xl hover:shadow-purple-500/50 transition-all duration-500"
                 >
                   <div className="bg-gradient-to-br from-white/95 to-purple-50/95 backdrop-blur-sm rounded-2xl p-4 overflow-hidden">
-                    {/* Animated shine effect */}
                     <motion.div
                       animate={{ x: ["-100%", "100%"] }}
                       transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -367,7 +400,7 @@ export function HeroSection() {
               </motion.button>
             </motion.div>
 
-            {/* Stats with animations */}
+            {/* Stats */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -412,7 +445,7 @@ export function HeroSection() {
               />
             </div>
 
-            {/* Floating Cards */}
+            {/* Floating Card 1 - Success Rate */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -430,30 +463,30 @@ export function HeroSection() {
               </div>
             </motion.div>
 
+            {/* Floating Card 2 - Auto-Sliding Student Initials */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 1 }}
-              className="absolute -right-8 top-20 bg-white rounded-2xl p-4 shadow-2xl"
+              className="absolute -right-8 top-20 bg-white backdrop-blur-sm rounded-2xl p-4 shadow-2xl border border-gray-100 min-w-[180px]"
             >
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2">
-                  {/* Student initials - Real names */}
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold" title="Rahul Sharma">
-                    R
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold" title="Priya Verma">
-                    P
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold" title="Sneha Gupta">
-                    S
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-orange-500 to-red-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold" title="Amit Singh">
-                    A
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold" title="Meera Patel">
-                    M
-                  </div>
+                  <AnimatePresence mode="popLayout">
+                    {visibleStudents.map((student, idx) => (
+                      <motion.div
+                        key={`${student.initial}-${currentStudentIndex}-${idx}`}
+                        initial={{ opacity: 0, scale: 0.5, x: 20 }}
+                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.5, x: -20 }}
+                        transition={{ duration: 0.3, delay: idx * 0.05 }}
+                        className={`w-8 h-8 rounded-full bg-gradient-to-r ${student.color} border-2 border-white flex items-center justify-center shadow-md cursor-help`}
+                        title={student.name}
+                      >
+                        <span className="text-white text-xs font-bold">{student.initial}</span>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
                 <div>
                   <div className="font-bold text-gray-900">2,000+ Students</div>
