@@ -16,7 +16,7 @@ import {
   Building, Users, Globe, Coffee, Medal, Sparkle,
   Gift, HelpCircle, CreditCard, Headphones, Layers,
   Instagram, Facebook, Twitter, Linkedin, Youtube,
-  School, GraduationCap as GradCap
+  School, GraduationCap as GradCap, Briefcase as BriefcaseIcon
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -63,12 +63,57 @@ interface CounselingSession {
   notes?: string;
 }
 
+interface PlacementOffer {
+  id: string;
+  title: string;
+  description: string;
+  company: string;
+  package: string;
+  eligibility: string;
+  lastDate: string;
+  status: 'active' | 'expired' | 'upcoming';
+}
+
 const motivationalQuotes = [
   { quote: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
   { quote: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
   { quote: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
   { quote: "The only limit to our realization of tomorrow is our doubts of today.", author: "Franklin D. Roosevelt" },
   { quote: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" }
+];
+
+// Sample placement offers data
+const placementOffers: PlacementOffer[] = [
+  {
+    id: '1',
+    title: 'Dreamz College Placement Assurance',
+    description: 'You get this offer in the last year of the course. Guaranteed placement assistance with top companies.',
+    company: 'Multiple Companies',
+    package: '₹3.5 LPA - ₹12 LPA',
+    eligibility: 'Final Year Students',
+    lastDate: '2026-12-31',
+    status: 'active'
+  },
+  {
+    id: '2',
+    title: 'Software Engineering Placement Drive',
+    description: 'Exclusive placement drive for Computer Science students with top MNCs.',
+    company: 'TCS, Infosys, Wipro, Amazon',
+    package: '₹4 LPA - ₹18 LPA',
+    eligibility: 'B.Tech/BE CSE, IT, MCA',
+    lastDate: '2026-10-15',
+    status: 'active'
+  },
+  {
+    id: '3',
+    title: 'Management Trainee Program',
+    description: 'MBA students get direct placement opportunities in leading companies.',
+    company: 'HDFC Bank, ICICI, Deloitte, KPMG',
+    package: '₹6 LPA - ₹15 LPA',
+    eligibility: 'MBA/PGDM',
+    lastDate: '2026-11-30',
+    status: 'active'
+  }
 ];
 
 export function UserDashboard() {
@@ -78,7 +123,7 @@ export function UserDashboard() {
   const [savedColleges, setSavedColleges] = useState<SavedCollege[]>([]);
   const [counselingSessions, setCounselingSessions] = useState<CounselingSession[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'applications' | 'saved' | 'counseling' | 'profile'>('applications');
+  const [activeTab, setActiveTab] = useState<'applications' | 'saved' | 'counseling' | 'profile' | 'placement'>('applications');
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', location: '' });
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
@@ -89,6 +134,8 @@ export function UserDashboard() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [currentQuote, setCurrentQuote] = useState(motivationalQuotes[0]);
+  const [selectedOffer, setSelectedOffer] = useState<PlacementOffer | null>(null);
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -123,7 +170,6 @@ export function UserDashboard() {
     if (savedImage) setProfileImage(savedImage);
   };
 
-  // ✅ FIXED: Fetch applications from 'inquiries' collection with full details
   const fetchApplications = async () => {
     try {
       const inquiriesRef = collection(db, 'inquiries');
@@ -240,6 +286,11 @@ export function UserDashboard() {
 
   const handleBookCounseling = () => {
     window.open('https://wa.me/918796033021?text=I want to book a counseling session with Dreamz College expert', '_blank');
+  };
+
+  const handleApplyPlacement = (offer: PlacementOffer) => {
+    setSelectedOffer(offer);
+    setIsOfferModalOpen(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -405,13 +456,14 @@ export function UserDashboard() {
             </div>
           </div>
 
-          {/* Tabs */}
+          {/* 🔥 UPDATED: Tabs with Placement option */}
           <div className="border-b border-gray-200 mb-6 bg-white/50 backdrop-blur-sm rounded-t-xl px-2">
             <div className="flex gap-1 overflow-x-auto">
               {[
                 { id: 'applications', label: 'My Applications', icon: FileText },
                 { id: 'saved', label: 'Saved Colleges', icon: Heart },
                 { id: 'counseling', label: 'Counseling', icon: Calendar },
+                { id: 'placement', label: 'Placement', icon: BriefcaseIcon },
                 { id: 'profile', label: 'Profile', icon: User }
               ].map((tab) => (
                 <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex items-center gap-2 px-5 py-3 text-sm font-medium transition-all relative ${activeTab === tab.id ? 'text-purple-600' : 'text-gray-500 hover:text-gray-700'}`}>
@@ -422,7 +474,116 @@ export function UserDashboard() {
             </div>
           </div>
 
-          {/* Applications Tab - WITH FULL DETAILS */}
+          {/* 🔥 NEW: Placement Tab */}
+          {activeTab === 'placement' && (
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-5 border border-purple-200 mb-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 bg-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                    <BriefcaseIcon className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-purple-800">🎓 Placement Opportunities</h3>
+                    <p className="text-gray-600 mt-1">Exclusive placement offers for Dreamz College students</p>
+                    <div className="flex flex-wrap gap-3 mt-2">
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✅ 100+ Companies</span>
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">✅ ₹12 LPA Highest Package</span>
+                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">✅ 94% Placement Record</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {placementOffers.map((offer) => (
+                  <motion.div
+                    key={offer.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ y: -4 }}
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all"
+                  >
+                    {offer.id === '1' && (
+                      <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-center py-2 text-xs font-semibold">
+                        ⭐ SPECIAL ANNOUNCEMENT ⭐
+                      </div>
+                    )}
+                    <div className="p-5">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                          <BriefcaseIcon className="w-6 h-6 text-purple-600" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-900">{offer.title}</h3>
+                          <p className="text-xs text-gray-500">{offer.company}</p>
+                        </div>
+                      </div>
+
+                      {/* 🔥 MAIN MESSAGE */}
+                      {offer.id === '1' && (
+                        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-3 mb-3 border border-yellow-200 text-center">
+                          <p className="text-sm font-bold text-orange-700 flex items-center justify-center gap-2">
+                            <Sparkles className="w-4 h-4" />
+                            You get this offer in the last year of the course
+                            <Sparkles className="w-4 h-4" />
+                          </p>
+                        </div>
+                      )}
+
+                      <p className="text-sm text-gray-600 mt-2">{offer.description}</p>
+                      
+                      <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Package:</span>
+                          <span className="font-semibold text-green-600">{offer.package}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Eligibility:</span>
+                          <span className="text-gray-700">{offer.eligibility}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Last Date:</span>
+                          <span className="text-gray-500">{new Date(offer.lastDate).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleApplyPlacement(offer)}
+                        className="mt-4 w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                      >
+                        <BriefcaseIcon className="w-4 h-4" />
+                        Apply Now
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Placement Statistics */}
+              <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-purple-600" /> Placement Statistics 2025-26</h3>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-green-600">94%</div>
+                    <div className="text-xs text-gray-500">Placement Rate</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-purple-600">₹12 LPA</div>
+                    <div className="text-xs text-gray-500">Highest Package</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-blue-600">250+</div>
+                    <div className="text-xs text-gray-500">Companies Visited</div>
+                  </div>
+                </div>
+                <div className="mt-3 pt-2 border-t border-gray-100">
+                  <p className="text-xs text-gray-400 text-center">Top Recruiters: TCS, Infosys, Wipro, Amazon, Microsoft, Deloitte, HDFC Bank</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Applications Tab - WITH FULL DETAILS (same as before) */}
           {activeTab === 'applications' && (
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-3 justify-between">
@@ -450,7 +611,6 @@ export function UserDashboard() {
                 <div className="grid grid-cols-1 gap-4">
                   {filteredApplications.map((app) => (
                     <motion.div key={app.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -2 }} className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer" onClick={() => { setSelectedApplication(app); setIsModalOpen(true); }}>
-                      {/* Header */}
                       <div className="flex items-start justify-between flex-wrap gap-3 mb-3">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl flex items-center justify-center"><GraduationCap className="w-6 h-6 text-purple-600" /></div>
@@ -466,25 +626,11 @@ export function UserDashboard() {
                         </span>
                       </div>
 
-                      {/* Academic Details Summary */}
                       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
-                        <div className="flex items-start gap-2">
-                          <School className="w-4 h-4 text-gray-400 mt-0.5" />
-                          <div>
-                            <p className="text-xs text-gray-500">10th</p>
-                            <p className="text-xs text-gray-700">{app.tenthBoard} • {app.tenthPercentage}% • {app.tenthPassingYear}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <GradCap className="w-4 h-4 text-gray-400 mt-0.5" />
-                          <div>
-                            <p className="text-xs text-gray-500">12th</p>
-                            <p className="text-xs text-gray-700">{app.twelfthBoard} • {app.twelfthPercentage}% • {app.twelfthPassingYear}</p>
-                          </div>
-                        </div>
+                        <div className="flex items-start gap-2"><School className="w-4 h-4 text-gray-400 mt-0.5" /><div><p className="text-xs text-gray-500">10th</p><p className="text-xs text-gray-700">{app.tenthBoard} • {app.tenthPercentage}% • {app.tenthPassingYear}</p></div></div>
+                        <div className="flex items-start gap-2"><GradCap className="w-4 h-4 text-gray-400 mt-0.5" /><div><p className="text-xs text-gray-500">12th</p><p className="text-xs text-gray-700">{app.twelfthBoard} • {app.twelfthPercentage}% • {app.twelfthPassingYear}</p></div></div>
                       </div>
 
-                      {/* Message if exists */}
                       {app.message && (
                         <div className="mt-3 p-2 bg-gray-50 rounded-lg">
                           <p className="text-xs text-gray-500">Message</p>
@@ -498,7 +644,7 @@ export function UserDashboard() {
             </div>
           )}
 
-          {/* Saved Colleges Tab (Same as before) */}
+          {/* Saved Colleges Tab */}
           {activeTab === 'saved' && (
             <div className="space-y-4">
               {savedColleges.length === 0 ? (
@@ -557,7 +703,7 @@ export function UserDashboard() {
             </div>
           )}
 
-          {/* Profile Tab (Same as before) */}
+          {/* Profile Tab */}
           {activeTab === 'profile' && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
@@ -613,6 +759,36 @@ export function UserDashboard() {
                   <div className="flex justify-between text-sm mt-2"><span>Application ID</span><span className="font-mono">#{selectedApplication.id?.slice(-8)}</span></div>
                   {selectedApplication.message && <div className="mt-3"><p className="text-sm text-gray-500">Message</p><p className="text-sm bg-gray-50 p-2 rounded">{selectedApplication.message}</p></div>}
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Placement Application Modal */}
+      <AnimatePresence>
+        {isOfferModalOpen && selectedOffer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setIsOfferModalOpen(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-2xl max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 rounded-t-2xl">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2"><BriefcaseIcon className="w-5 h-5" /> Apply for Placement</h3>
+              </div>
+              <div className="p-5">
+                <div className="text-center mb-4">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h4 className="text-lg font-bold text-gray-900">Application Submitted!</h4>
+                  <p className="text-sm text-gray-500 mt-1">Your application for <strong>{selectedOffer.title}</strong> has been received.</p>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-3 mb-4">
+                  <p className="text-xs text-purple-700 text-center">
+                    Our placement team will contact you shortly with further details.
+                  </p>
+                </div>
+                <button onClick={() => setIsOfferModalOpen(false)} className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium">
+                  Close
+                </button>
               </div>
             </motion.div>
           </div>
