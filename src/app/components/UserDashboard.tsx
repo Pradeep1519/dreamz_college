@@ -16,7 +16,7 @@ import {
   Building, Users, Globe, Coffee, Medal, Sparkle,
   Gift, HelpCircle, CreditCard, Headphones, Layers,
   Instagram, Facebook, Twitter, Linkedin, Youtube,
-  School, GraduationCap as GradCap, Briefcase as BriefcaseIcon
+  School, GraduationCap as GradCap, Briefcase as BriefcaseIcon, CalendarDays, Clock as ClockIcon
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -87,7 +87,7 @@ const placementOffers: PlacementOffer[] = [
   {
     id: '1',
     title: 'Dreamz College Placement Assurance',
-    description: 'You get this offer in the last year of the course. Guaranteed placement assistance with top companies.',
+    description: 'Guaranteed placement assistance with top companies after course completion.',
     company: 'Multiple Companies',
     package: '₹3.5 LPA - ₹12 LPA',
     eligibility: 'Final Year Students',
@@ -135,7 +135,7 @@ export function UserDashboard() {
   const [uploading, setUploading] = useState(false);
   const [currentQuote, setCurrentQuote] = useState(motivationalQuotes[0]);
   const [selectedOffer, setSelectedOffer] = useState<PlacementOffer | null>(null);
-  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [isPlacementInfoModalOpen, setIsPlacementInfoModalOpen] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -288,9 +288,10 @@ export function UserDashboard() {
     window.open('https://wa.me/918796033021?text=I want to book a counseling session with Dreamz College expert', '_blank');
   };
 
-  const handleApplyPlacement = (offer: PlacementOffer) => {
+  // 🔥 UPDATED: Show info modal instead of applying directly
+  const handlePlacementClick = (offer: PlacementOffer) => {
     setSelectedOffer(offer);
-    setIsOfferModalOpen(true);
+    setIsPlacementInfoModalOpen(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -456,7 +457,7 @@ export function UserDashboard() {
             </div>
           </div>
 
-          {/* 🔥 UPDATED: Tabs with Placement option */}
+          {/* Tabs with Placement option */}
           <div className="border-b border-gray-200 mb-6 bg-white/50 backdrop-blur-sm rounded-t-xl px-2">
             <div className="flex gap-1 overflow-x-auto">
               {[
@@ -474,7 +475,7 @@ export function UserDashboard() {
             </div>
           </div>
 
-          {/* 🔥 NEW: Placement Tab */}
+          {/* Placement Tab - with info popup on click */}
           {activeTab === 'placement' && (
             <div className="space-y-4">
               <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-5 border border-purple-200 mb-4">
@@ -494,6 +495,7 @@ export function UserDashboard() {
                 </div>
               </div>
 
+              {/* Placement Offers Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {placementOffers.map((offer) => (
                   <motion.div
@@ -501,7 +503,8 @@ export function UserDashboard() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     whileHover={{ y: -4 }}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all"
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all cursor-pointer"
+                    onClick={() => handlePlacementClick(offer)}
                   >
                     {offer.id === '1' && (
                       <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-center py-2 text-xs font-semibold">
@@ -519,16 +522,14 @@ export function UserDashboard() {
                         </div>
                       </div>
 
-                      {/* 🔥 MAIN MESSAGE */}
-                      {offer.id === '1' && (
-                        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-3 mb-3 border border-yellow-200 text-center">
-                          <p className="text-sm font-bold text-orange-700 flex items-center justify-center gap-2">
-                            <Sparkles className="w-4 h-4" />
-                            You get this offer in the last year of the course
-                            <Sparkles className="w-4 h-4" />
-                          </p>
-                        </div>
-                      )}
+                      {/* Main Message */}
+                      <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-3 mb-3 border border-yellow-200 text-center">
+                        <p className="text-sm font-bold text-orange-700 flex items-center justify-center gap-2">
+                          <Sparkles className="w-4 h-4" />
+                          This opportunity will be available in your final year
+                          <Sparkles className="w-4 h-4" />
+                        </p>
+                      </div>
 
                       <p className="text-sm text-gray-600 mt-2">{offer.description}</p>
                       
@@ -541,18 +542,14 @@ export function UserDashboard() {
                           <span className="text-gray-500">Eligibility:</span>
                           <span className="text-gray-700">{offer.eligibility}</span>
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Last Date:</span>
-                          <span className="text-gray-500">{new Date(offer.lastDate).toLocaleDateString()}</span>
-                        </div>
                       </div>
 
                       <button
-                        onClick={() => handleApplyPlacement(offer)}
+                        onClick={(e) => { e.stopPropagation(); handlePlacementClick(offer); }}
                         className="mt-4 w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2"
                       >
                         <BriefcaseIcon className="w-4 h-4" />
-                        Apply Now
+                        View Details
                       </button>
                     </div>
                   </motion.div>
@@ -583,7 +580,7 @@ export function UserDashboard() {
             </div>
           )}
 
-          {/* Applications Tab - WITH FULL DETAILS (same as before) */}
+          {/* Applications Tab */}
           {activeTab === 'applications' && (
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-3 justify-between">
@@ -625,12 +622,10 @@ export function UserDashboard() {
                           {app.status === 'pending' ? 'Processing' : app.status}
                         </span>
                       </div>
-
                       <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
                         <div className="flex items-start gap-2"><School className="w-4 h-4 text-gray-400 mt-0.5" /><div><p className="text-xs text-gray-500">10th</p><p className="text-xs text-gray-700">{app.tenthBoard} • {app.tenthPercentage}% • {app.tenthPassingYear}</p></div></div>
                         <div className="flex items-start gap-2"><GradCap className="w-4 h-4 text-gray-400 mt-0.5" /><div><p className="text-xs text-gray-500">12th</p><p className="text-xs text-gray-700">{app.twelfthBoard} • {app.twelfthPercentage}% • {app.twelfthPassingYear}</p></div></div>
                       </div>
-
                       {app.message && (
                         <div className="mt-3 p-2 bg-gray-50 rounded-lg">
                           <p className="text-xs text-gray-500">Message</p>
@@ -765,30 +760,46 @@ export function UserDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Placement Application Modal */}
+      {/* 🔥 NEW: Placement Info Modal - Shows message about final year */}
       <AnimatePresence>
-        {isOfferModalOpen && selectedOffer && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setIsOfferModalOpen(false)}>
+        {isPlacementInfoModalOpen && selectedOffer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setIsPlacementInfoModalOpen(false)}>
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-2xl max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 rounded-t-2xl">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2"><BriefcaseIcon className="w-5 h-5" /> Apply for Placement</h3>
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 rounded-t-2xl">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2"><BriefcaseIcon className="w-5 h-5" /> Important Information</h3>
               </div>
-              <div className="p-5">
-                <div className="text-center mb-4">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                  </div>
-                  <h4 className="text-lg font-bold text-gray-900">Application Submitted!</h4>
-                  <p className="text-sm text-gray-500 mt-1">Your application for <strong>{selectedOffer.title}</strong> has been received.</p>
+              <div className="p-5 text-center">
+                <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CalendarDays className="w-10 h-10 text-orange-600" />
                 </div>
-                <div className="bg-purple-50 rounded-lg p-3 mb-4">
-                  <p className="text-xs text-purple-700 text-center">
-                    Our placement team will contact you shortly with further details.
+                <h4 className="text-lg font-bold text-gray-900 mb-2">Placement Opportunity</h4>
+                <div className="bg-yellow-50 rounded-lg p-4 mb-4 border border-yellow-200">
+                  <p className="text-base font-bold text-orange-700 flex items-center justify-center gap-2">
+                    <Sparkles className="w-5 h-5" />
+                    You have not taken admission in any course yet
+                    <Sparkles className="w-5 h-5" />
+                  </p>
+                  <p className="text-sm text-gray-600 mt-2">
+                    This placement opportunity will be available to you in the <strong className="text-purple-600">last year of your course</strong>.
                   </p>
                 </div>
-                <button onClick={() => setIsOfferModalOpen(false)} className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium">
-                  Close
-                </button>
+                <div className="bg-blue-50 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-blue-700">📌 Steps to get placement assistance:</p>
+                  <ul className="text-xs text-gray-600 mt-2 space-y-1 text-left">
+                    <li>✅ 1. First, apply for admission in your desired college</li>
+                    <li>✅ 2. Complete your course successfully</li>
+                    <li>✅ 3. In your final year, you'll get placement support</li>
+                    <li>✅ 4. Our placement team will help you get placed</li>
+                  </ul>
+                </div>
+                <div className="flex gap-3">
+                  <Link to="/colleges" onClick={() => setIsPlacementInfoModalOpen(false)} className="flex-1 py-2.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium text-center">
+                    Browse Colleges
+                  </Link>
+                  <button onClick={() => setIsPlacementInfoModalOpen(false)} className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium">
+                    Close
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
