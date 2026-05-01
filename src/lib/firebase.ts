@@ -200,3 +200,80 @@ export const isCollegeSaved = async (userId: string, collegeId: string) => {
   const snapshot = await getDocs(q);
   return !snapshot.empty;
 };
+
+// ========== COUNSELOR HELPERS ==========
+
+// Check if user is a counselor
+export const isCounselor = async (userId: string): Promise<boolean> => {
+  try {
+    const counselorsRef = collection(db, 'counselors');
+    const q = query(counselorsRef, where('authId', '==', userId));
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+  } catch (error) {
+    console.error('Error checking counselor status:', error);
+    return false;
+  }
+};
+
+// Get counselor by auth ID
+export const getCounselorByAuthId = async (authId: string) => {
+  try {
+    const counselorsRef = collection(db, 'counselors');
+    const q = query(counselorsRef, where('authId', '==', authId));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching counselor:', error);
+    return null;
+  }
+};
+
+// Get all counselors
+export const getAllCounselors = async () => {
+  try {
+    const counselorsRef = collection(db, 'counselors');
+    const q = query(counselorsRef, where('isActive', '==', true));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error fetching counselors:', error);
+    return [];
+  }
+};
+
+// Update counselor last login
+export const updateCounselorLastLogin = async (counselorId: string) => {
+  try {
+    const counselorRef = doc(db, 'counselors', counselorId);
+    await updateDoc(counselorRef, {
+      lastLogin: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error updating last login:', error);
+  }
+};
+
+// Update counselor stats (leads count)
+export const updateCounselorStats = async (counselorId: string) => {
+  try {
+    // Count assigned leads
+    const assignmentsRef = collection(db, 'lead_assignments');
+    const q = query(assignmentsRef, where('counselorId', '==', counselorId));
+    const snapshot = await getDocs(q);
+    const totalAssigned = snapshot.size;
+    const converted = snapshot.docs.filter(doc => doc.data().status === 'converted').length;
+    
+    const counselorRef = doc(db, 'counselors', counselorId);
+    await updateDoc(counselorRef, {
+      totalAssignedLeads: totalAssigned,
+      totalConvertedLeads: converted,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error updating counselor stats:', error);
+  }
+};

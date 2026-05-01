@@ -55,6 +55,14 @@ import { AdminRoute } from '../admin/AdminRoute';
 import { OnlineProgramsPage } from './pages/OnlineProgramsPage';
 import { ExecutiveEducationPage } from './pages/ExecutiveEducationPage';
 
+// ========== COUNSELOR IMPORTS ==========
+import { CounselorLogin } from '../counselor/CounselorLogin';
+import { CounselorDashboard } from '../counselor/CounselorDashboard';
+import { CounselorLeads } from '../counselor/CounselorLeads';
+import { CounselorLeadDetail } from '../counselor/CounselorLeadDetail';
+import { CounselorProfile } from '../counselor/CounselorProfile';
+import { CounselorCalls } from '../counselor/CounselorCalls';
+
 // Import all college pages
 import { AccurateInstitutePage } from './pages/colleges/AccurateInstitutePage';
 import { GNGroupPage } from './pages/colleges/GNGroupPage';
@@ -351,16 +359,19 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            {/* ========== USER ROUTES ========== */}
             <Route path="/dashboard" element={<PageWrapper><UserDashboard /></PageWrapper>} />
+            <Route path="/login" element={<PageWrapper><Login isOpen={true} onClose={() => window.history.back()} /></PageWrapper>} />
             
+            {/* ========== BLOG ROUTES ========== */}
             <Route path="/blog" element={<PageWrapper><BlogListPage onNavigateToBlogDetail={(slug) => window.location.href = `/blog/${slug}`} /></PageWrapper>} />
             <Route path="/blog/:slug" element={<PageWrapper><BlogDetailPage /></PageWrapper>} />
             
-            {/* New Routes */}
+            {/* ========== PROGRAM ROUTES ========== */}
             <Route path="/online-programs" element={<PageWrapper><OnlineProgramsPage /></PageWrapper>} />
             <Route path="/executive-education" element={<PageWrapper><ExecutiveEducationPage /></PageWrapper>} />
             
-            {/* College Detail Routes */}
+            {/* ========== COLLEGE DETAIL ROUTES ========== */}
             <Route path="/college/accurate-institute" element={<PageWrapper><AccurateInstitutePage /></PageWrapper>} />
             <Route path="/college/gn-group" element={<PageWrapper><GNGroupPage /></PageWrapper>} />
             <Route path="/college/mangalmay" element={<PageWrapper><MangalmayPage /></PageWrapper>} />
@@ -392,11 +403,13 @@ export default function App() {
             <Route path="/college/gniot" element={<PageWrapper><GNIOTGroupPage /></PageWrapper>} />
             <Route path="/college/himt-college" element={<PageWrapper><HIMTGroupPage /></PageWrapper>} />
             <Route path="/college/global-institute" element={<PageWrapper><GlobalInstitutePage /></PageWrapper>} />
-            
             <Route path="/college/:collegeId" element={<PageWrapper><AccurateInstitutePage /></PageWrapper>} />
             
+            {/* ========== EXAM & CAREER ROUTES ========== */}
             <Route path="/exam/:examId" element={<PageWrapper><ExamPage /></PageWrapper>} />
             <Route path="/career/:jobId" element={<PageWrapper><CareerPage /></PageWrapper>} />
+            
+            {/* ========== CATEGORY PAGES ========== */}
             <Route path="/engineering-colleges" element={<PageWrapper><EngineeringCollegesPage /></PageWrapper>} />
             <Route path="/mba-colleges" element={<PageWrapper><MBACollegesPage /></PageWrapper>} />
             <Route path="/medical-colleges" element={<PageWrapper><MedicalCollegesPage /></PageWrapper>} />
@@ -408,18 +421,19 @@ export default function App() {
             <Route path="/private-universities" element={<PageWrapper><PrivateUniversitiesPage /></PageWrapper>} />
             <Route path="/low-fee-colleges" element={<PageWrapper><LowFeeCollegesPage /></PageWrapper>} />
             
-            <Route path="/login" element={<PageWrapper><Login isOpen={true} onClose={() => window.history.back()} /></PageWrapper>} />
-
+            {/* ========== ADMIN ROUTES ========== */}
             <Route path="/admin-login" element={<AdminLogin />} />
-            <Route 
-              path="/admin/dashboard" 
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              } 
-            />
-
+            <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+            
+            {/* ========== COUNSELOR ROUTES ========== */}
+            <Route path="/counselor-login" element={<CounselorLogin />} />
+            <Route path="/counselor/dashboard" element={<CounselorDashboard />} />
+            <Route path="/counselor/leads" element={<CounselorLeads />} />
+            <Route path="/counselor/lead/:leadId" element={<CounselorLeadDetail />} />
+            <Route path="/counselor/profile" element={<CounselorProfile />} />
+            <Route path="/counselor/calls" element={<CounselorCalls />} />
+            
+            {/* ========== CATCH ALL ROUTE ========== */}
             <Route path="/*" element={<AppContent />} />
           </Routes>
         </AuthProvider>
