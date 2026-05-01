@@ -24,6 +24,19 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
+// ========== HELPER: Generate Readable ID ==========
+const generateReadableId = (name: string, suffix?: string): string => {
+  const nameSlug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '_')  // Remove special characters
+    .replace(/_+/g, '_')          // Replace multiple underscores with single
+    .replace(/^_|_$/, '')         // Remove leading/trailing underscores
+    .slice(0, 30);                // Limit to 30 characters
+  
+  const timestamp = suffix || Date.now().toString().slice(-6);
+  return `${nameSlug}_${timestamp}`;
+};
+
 // ========== USER HELPERS ==========
 
 export const saveUser = async (userId: string, userData: any) => {
@@ -80,23 +93,33 @@ export const getUserAppliedCourses = async (userId: string, collegeId: string) =
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
+// ✅ FIXED: Save inquiry with READABLE document ID
 export const saveInquiry = async (data: any) => {
-  const inquiriesRef = collection(db, 'inquiries');
-  return await addDoc(inquiriesRef, {
+  const readableId = generateReadableId(data.name || data.phoneNumber || 'user');
+  const inquiryRef = doc(db, 'inquiries', readableId);
+  await setDoc(inquiryRef, {
     ...data,
+    id: readableId,
     createdAt: new Date().toISOString(),
     status: 'pending'
   });
+  return readableId;
 };
 
+// ✅ FIXED: Save full application with READABLE document ID
 export const saveFullApplication = async (data: any) => {
-  const inquiriesRef = collection(db, 'inquiries');
-  return await addDoc(inquiriesRef, {
+  const readableId = generateReadableId(data.name);
+  const inquiryRef = doc(db, 'inquiries', readableId);
+  await setDoc(inquiryRef, {
     ...data,
+    id: readableId,
     createdAt: new Date().toISOString(),
     status: 'pending',
-    applicationType: 'full'
+    applicationType: 'full',
+    updatedAt: new Date().toISOString()
   });
+  console.log(`✅ Application saved with ID: ${readableId}`);
+  return readableId;
 };
 
 export const getUserInquiries = async (phoneNumber: string) => {
@@ -124,21 +147,36 @@ export const updateInquiryStatus = async (inquiryId: string, status: string) => 
   return await updateDoc(inquiryRef, { status, updatedAt: new Date().toISOString() });
 };
 
+export const getApplicationById = async (applicationId: string) => {
+  const applicationRef = doc(db, 'inquiries', applicationId);
+  const applicationSnap = await getDoc(applicationRef);
+  return applicationSnap.exists() ? { id: applicationSnap.id, ...applicationSnap.data() } : null;
+};
+
 // ========== DRAFT APPLICATIONS HELPERS ==========
 
+// ✅ FIXED: Save draft with READABLE ID and filter undefined values
 export const saveDraftApplication = async (data: any, draftId?: string | null) => {
+  // Filter out undefined values
+  const cleanData = Object.fromEntries(
+    Object.entries(data).filter(([_, value]) => value !== undefined && value !== null)
+  );
+  
   const draftsRef = collection(db, 'drafts');
   if (draftId) {
     const draftRef = doc(db, 'drafts', draftId);
-    await updateDoc(draftRef, { ...data, updatedAt: new Date().toISOString() });
+    await updateDoc(draftRef, { ...cleanData, updatedAt: new Date().toISOString() });
     return draftId;
   } else {
-    const docRef = await addDoc(draftsRef, {
-      ...data,
+    const readableId = generateReadableId(data.name || data.userId || 'draft');
+    const draftRef = doc(db, 'drafts', readableId);
+    await setDoc(draftRef, {
+      ...cleanData,
+      id: readableId,
       createdAt: new Date().toISOString(),
       status: 'draft'
     });
-    return docRef.id;
+    return readableId;
   }
 };
 
@@ -159,6 +197,7 @@ export const getAllDrafts = async () => {
 
 // ========== SAVED COLLEGES HELPERS ==========
 
+// ✅ FIXED: Save college with READABLE ID
 export const saveCollege = async (userId: string, collegeData: any) => {
   const savedRef = collection(db, 'saved_colleges');
   const q = query(savedRef, where('userId', '==', userId), where('collegeId', '==', collegeData.collegeId));
@@ -168,7 +207,9 @@ export const saveCollege = async (userId: string, collegeData: any) => {
     return { success: false, message: 'Already saved' };
   }
   
-  await addDoc(savedRef, {
+  const readableId = generateReadableId(collegeData.collegeName, userId.slice(-4));
+  const savedRefDoc = doc(db, 'saved_colleges', readableId);
+  await setDoc(savedRefDoc, {
     userId: userId,
     collegeId: collegeData.collegeId,
     collegeName: collegeData.collegeName,
@@ -176,10 +217,11 @@ export const saveCollege = async (userId: string, collegeData: any) => {
     rating: collegeData.rating,
     fee: collegeData.fee,
     image: collegeData.image,
-    savedAt: new Date().toISOString()
+    savedAt: new Date().toISOString(),
+    id: readableId
   });
   
-  return { success: true, message: 'College saved successfully' };
+  return { success: true, message: 'College saved successfully', id: readableId };
 };
 
 export const removeSavedCollege = async (savedId: string) => {

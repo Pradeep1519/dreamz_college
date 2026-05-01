@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, CheckCircle, AlertCircle, GraduationCap, Calendar, BookOpen, Phone, Mail, User, Send, Building, Gift, Zap, Sparkles, TrendingUp, Award, Clock, Shield, IndianRupee, ChevronRight, ChevronLeft, Globe, MessageCircle, Monitor, Home, Trophy, Users, Star, Heart } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { saveFullApplication, hasUserAppliedForCourse, saveDraftApplication, updateDraftToSubmitted } from '../../lib/firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { Offer } from '../../lib/offerService';
 import confetti from 'canvas-confetti';
@@ -176,7 +176,7 @@ export function ApplicationPopup({ isOpen, onClose, college, onSuccess }: Applic
       if (!isOpen || !user?.uid) return;
       if (step === 4) return; // Don't save draft on review page
       
-      const draftData = {
+      const draftDataRaw = {
         userId: user.uid,
         name: userName,
         email: userEmail,
@@ -201,6 +201,11 @@ export function ApplicationPopup({ isOpen, onClose, college, onSuccess }: Applic
         status: 'draft',
         updatedAt: new Date().toISOString()
       };
+      
+      // Filter out undefined values
+      const draftData = Object.fromEntries(
+        Object.entries(draftDataRaw).filter(([_, value]) => value !== undefined && value !== null)
+      );
       
       const id = await saveDraftApplication(draftData, draftId);
       if (id && !draftId) setDraftId(id);
@@ -413,22 +418,24 @@ ${data.offerClaimed ? `• Offer Applied: ${data.offerName}
       applicationType: 'full',
       admissionTimeline: '2026-2027',
       offerClaimed: !!appliedOffer,
-      offerId: appliedOffer?.id,
-      offerName: appliedOffer?.name,
+      offerId: appliedOffer?.id || null,
+      offerName: appliedOffer?.name || null,
       originalFee: registrationFee,
       appliedFee: finalFee,
       discountAmount: discountAmount,
       scholarshipEligible: scholarship.eligible,
       scholarshipAmount: scholarship.amount,
       scholarshipName: scholarship.name,
-      status: 'submitted',
+      status: 'pending',
       submittedAt: new Date().toISOString(),
       stepsCompleted: 4,
       draftId: draftId
     };
 
     try {
-      await saveFullApplication(applicationData);
+      const docId = await saveFullApplication(applicationData);
+      console.log(`✅ Application submitted successfully with ID: ${docId}`);
+      
       await updateDraftToSubmittedFunc();
       await sendToGoogleSheets(applicationData);
       sendToWhatsApp(applicationData);
@@ -501,6 +508,7 @@ ${data.offerClaimed ? `• Offer Applied: ${data.offerName}
                     </div>
                   )}
                   <p className="text-gray-600 mt-2">Our counselor will contact you soon.</p>
+                  <p className="text-xs text-gray-400 mt-2">Application ID: {draftId || 'Processing'}</p>
                 </div>
               ) : (
                 <>
@@ -559,7 +567,7 @@ ${data.offerClaimed ? `• Offer Applied: ${data.offerName}
                     </div>
                   </div>
 
-                  {/* Premium Offer Banner (Optional) */}
+                  {/* Premium Offer Banner */}
                   {hasOffer && showOffer && !loadingOffer && !isDiscounted && (
                     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-4">
                       <div className="relative bg-gradient-to-r from-red-600 via-orange-500 to-pink-600 rounded-xl overflow-hidden shadow-lg">
@@ -662,9 +670,15 @@ ${data.offerClaimed ? `• Offer Applied: ${data.offerName}
                     <div className="space-y-5">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Select Course <span className="text-red-500">*</span></label>
-                        <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)} className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white transition-all ${validationErrors.course ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-200'}`}>
+                        <select 
+                          value={selectedCourse} 
+                          onChange={(e) => setSelectedCourse(e.target.value)} 
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white transition-all ${validationErrors.course ? 'border-red-500 ring-2 ring-red-200' : 'border-gray-200'}`}
+                        >
                           <option value="">Choose a course</option>
-                          {college.courses.map((course, idx) => (<option key={idx} value={course}>{course}</option>))}
+                          {college.courses.map((course, idx) => (
+                            <option key={idx} value={course}>{course}</option>
+                          ))}
                         </select>
                         {validationErrors.course && <p className="text-red-500 text-xs mt-1">Please select a course</p>}
                       </div>
