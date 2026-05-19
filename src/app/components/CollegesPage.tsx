@@ -77,7 +77,6 @@ const collegeImages: Record<string, string> = {
   "gniot": "./college-img/gniot/g3.jpg",
   "himt-college": "./college-img/himt/h1.webp",
   "global-institute": "./college-img/global/g2.jpeg",
-  "accurate-institute": "./college-img/accurate/a1.webp",
   // 🔥 Naye colleges ke liye yahan add karte jao
 };
 
