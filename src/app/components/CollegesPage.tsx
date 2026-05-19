@@ -31,7 +31,6 @@ export interface College {
   accreditation?: string[];
 }
 
-// Course interface for courses collection
 interface CourseDoc {
   id: string;
   name: string;
@@ -44,6 +43,60 @@ interface CourseDoc {
   university: string;
   eligibility: string;
 }
+
+// 🔥 College Image Mapping - Tum bas yahan image path daal do
+const collegeImages: Record<string, string> = {
+  // Format: "collegeId": "/path/to/image.jpg"
+  "amity-greater-noida": "./college-img/amity-uni/am10.webp",
+  "bennett-university": "./college-img/Bennett/bb1.webp",
+  "galgotias-university": "./college-img/Galgotias/gu1.jpeg",
+  "sharda-university": "./college-img/Sharda/sh1.jpeg",
+  "gn-group": "./college-img/GNGroup/Gngrp1.jpeg",
+  "mangalmay": "./college-img/Mangalmay/m3.jpg",
+  "niet": "./college-img/NIET/n1.webp",
+  "gl-bajaj": "./college-img/GLBajaj/gl1.jpg",
+  "iimt-group": "./college-img/IIMT/iimt1.jpg",
+  "lloyd": "./college-img/Lloyd/l8.jpg",
+  "its-engineering": "./college-img/ITS/i4.webp",
+  "dronacharya": "./college-img/dronacharya/d5.jpeg",
+  "nimt-college": "./college-img/nimt/ni1.png",
+  "noida-international-university": "./college-img/niu/n1.jpg",
+  "ram-eesh-institute": "./college-img/ram-ese/r1.jpeg",
+  "united-college-of-education": "./college-img/united/u1.webp",
+  "its-mohan-nagar": "./college-img/its-mohan-nagar.jpg",
+  "its-ghaziabad": "./college-img/its-ghaziabad.jpg",
+  "its-health-sciences": "./college-img/its-health-sciences.jpg",
+  "its-dental-college": "./college-img/its-dental-college.jpg",
+  "its-school-of-management": "./college-img/its-school-of-management.jpg",
+  "innovative-group": "./college-img/innovative/in1.jpg",
+  "ishan-educational": "./college-img/ishan/i1.jpeg",
+  "jims-noida": "./college-img/JIMS/j1.avif",
+  "kcc-institute": "./college-img/kcc/k1.jpg",
+  "kcc-legal-higher-education": "./college-img/kcc-legal-higher-education.jpg",
+  "metro-college": "./college-img/metro-college/m1.jpg",
+  "gniot": "./college-img/gniot/g3.jpg",
+  "himt-college": "./college-img/himt/h1.webp",
+  "global-institute": "./college-img/global/g2.jpeg",
+  "accurate-institute": "./college-img/accurate/a1.webp",
+  // 🔥 Naye colleges ke liye yahan add karte jao
+};
+
+// Helper function to get college image
+const getCollegeImage = (collegeId: string, collegeName: string): string => {
+  // First check if we have a specific image mapping
+  if (collegeImages[collegeId]) {
+    return collegeImages[collegeId];
+  }
+  
+  // Try to generate from college name
+  const slug = collegeName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  
+  return `/college-images/${slug}.jpg`;
+};
 
 const UG_COURSES = [
   { label: 'BBA', icon: Briefcase, searchTerms: ['bba', 'b.b.a', 'bachelor of business administration'] },
@@ -85,7 +138,6 @@ const SkeletonCard = () => (
   </div>
 );
 
-// 🔥 NEW: Fetch colleges from courses collection
 export function CollegesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -107,7 +159,6 @@ export function CollegesPage() {
     pgCourses: true
   });
 
-  // 🔥 NEW: Fetch from courses collection
   useEffect(() => {
     fetchCoursesAndColleges();
   }, []);
@@ -115,7 +166,6 @@ export function CollegesPage() {
   const fetchCoursesAndColleges = async () => {
     setIsLoading(true);
     try {
-      // Fetch all courses
       const coursesRef = collection(db, 'courses');
       const coursesSnapshot = await getDocs(coursesRef);
       const allCourses: CourseDoc[] = coursesSnapshot.docs.map(doc => ({
@@ -125,21 +175,22 @@ export function CollegesPage() {
       
       setCoursesData(allCourses);
       
-      // Group courses by college to create colleges array
       const collegeMap = new Map<string, College>();
       
       allCourses.forEach(course => {
         if (!collegeMap.has(course.collegeId)) {
-          // Create new college entry
+          // 🔥 FIXED: Get dynamic college image
+          const collegeImage = getCollegeImage(course.collegeId, course.collegeName);
+          
           collegeMap.set(course.collegeId, {
             id: course.collegeId,
             name: course.collegeName,
             fullName: course.collegeName,
-            location: 'Greater Noida', // Default or fetch from somewhere
-            rating: 4.0, // Default rating
+            location: 'Greater Noida, Uttar Pradesh',
+            rating: 4.0,
             students: '1000+',
-            type: course.category === 'engineering' ? 'Engineering' : 'University',
-            image: 'https://images.unsplash.com/photo-1562774053-701939374585?w=800',
+            type: course.category === 'engineering' ? 'Engineering College' : 'University',
+            image: collegeImage,
             courses: [],
             highestPackage: 'Contact for details',
             placementRate: 'Contact for details',
@@ -147,7 +198,6 @@ export function CollegesPage() {
           });
         }
         
-        // Add course to college's courses list
         const college = collegeMap.get(course.collegeId);
         if (college && !college.courses?.includes(course.name)) {
           college.courses = [...(college.courses || []), course.name];
@@ -163,7 +213,6 @@ export function CollegesPage() {
     }
   };
 
-  // Handle URL params for course filter
   useEffect(() => {
     const course = searchParams.get('course');
     if (course && course !== selectedCourse) {
@@ -175,7 +224,6 @@ export function CollegesPage() {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  // Normalize course name for comparison
   const normalizeCourse = (courseName: string): string => {
     return courseName
       .toLowerCase()
@@ -185,7 +233,6 @@ export function CollegesPage() {
       .trim();
   };
 
-  // Check if college offers the selected course
   const collegeOffersCourse = (collegeCourses: string[] | undefined, selected: string): boolean => {
     if (!collegeCourses || collegeCourses.length === 0) return false;
     if (!selected) return true;
@@ -200,7 +247,6 @@ export function CollegesPage() {
     });
   };
 
-  // Filter colleges
   const filteredColleges = useMemo(() => {
     const result = colleges.filter(college => {
       const matchesSearch = searchTerm === '' ||
@@ -220,6 +266,18 @@ export function CollegesPage() {
     switch (sortBy) {
       case 'rating-high':
         return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      case 'fees-low':
+        return sorted.sort((a, b) => {
+          const aNum = parseInt(a.fees?.replace(/[^0-9]/g, '') || '999999');
+          const bNum = parseInt(b.fees?.replace(/[^0-9]/g, '') || '999999');
+          return aNum - bNum;
+        });
+      case 'package-high':
+        return sorted.sort((a, b) => {
+          const aNum = parseInt(a.highestPackage?.replace(/[^0-9]/g, '') || '0');
+          const bNum = parseInt(b.highestPackage?.replace(/[^0-9]/g, '') || '0');
+          return bNum - aNum;
+        });
       default:
         return sorted;
     }
@@ -241,7 +299,6 @@ export function CollegesPage() {
       setIsLoginOpen(true);
       return;
     }
-    // Find courses for this college from coursesData
     const collegeCourses = coursesData.filter(c => c.collegeId === college.id);
     const modalData = {
       id: college.id,
@@ -287,6 +344,11 @@ export function CollegesPage() {
 
   const getCollegeCountForCourse = (courseLabel: string): number => {
     return colleges.filter(college => collegeOffersCourse(college.courses, courseLabel)).length;
+  };
+
+  // Handle image error - fallback to default
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = 'https://images.unsplash.com/photo-1562774053-701939374585?w=800';
   };
 
   return (
@@ -527,15 +589,13 @@ export function CollegesPage() {
                             onClick={() => handleCollegeClick(college)}
                             className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer group"
                           >
-                            <div className="relative h-44 overflow-hidden">
+                            <div className="relative h-44 overflow-hidden bg-gray-100">
                               <img
                                 src={college.image}
                                 alt={college.name}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                 loading="lazy"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1562774053-701939374585?w=800';
-                                }}
+                                onError={handleImageError}
                               />
                             </div>
 
@@ -551,10 +611,10 @@ export function CollegesPage() {
                               <div className="flex flex-wrap gap-2 mb-3">
                                 <span className="flex items-center gap-1 text-xs bg-yellow-50 text-yellow-700 px-2 py-1 rounded-full">
                                   <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                                  4.0
+                                  {college.rating}
                                 </span>
                                 <span className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-full">
-                                  University
+                                  {college.type}
                                 </span>
                               </div>
 
