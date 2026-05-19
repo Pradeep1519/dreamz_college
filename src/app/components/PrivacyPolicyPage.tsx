@@ -100,9 +100,9 @@ export function PrivacyPolicyPage() {
             If you have any questions about our Privacy Policy, please contact our Data Protection Officer:
           </p>
           <div className="text-gray-600">
-            <p>Email: privacy@dreamcollege.in</p>
-            <p>Phone: +91 123 456 7890 (Mon-Fri, 10AM-6PM)</p>
-            <p>Address: 123 Education Plaza, New Delhi - 110001</p>
+            <p>Email: info@dreamcollege.in</p>
+            <p>Phone: +91 87960 33021 (Mon-Fri, 10AM-6PM)</p>
+            <p>Address:  Education Plaza, Greater Noida - 201306</p>
           </div>
         </div>
       </div>
