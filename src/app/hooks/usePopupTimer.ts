@@ -2,16 +2,15 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-export function usePopupTimer(intervalSeconds: number = 20) {
+export function usePopupTimer(intervalSeconds: number = 15) {
   const [isOpen, setIsOpen] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Check if user has already submitted the form (permanent)
+  // Check if user has submitted in this session only
   useEffect(() => {
-    const hasSubmitted = localStorage.getItem('leadPopupSubmitted') === 'true';
+    const hasSubmitted = sessionStorage.getItem('leadPopupSubmitted') === 'true';
     
     if (!hasSubmitted) {
-      // Show popup after 2 seconds on page load
       const initialTimer = setTimeout(() => {
         setIsOpen(true);
       }, 2000);
@@ -21,7 +20,7 @@ export function usePopupTimer(intervalSeconds: number = 20) {
   }, []);
 
   const showPopup = useCallback(() => {
-    const hasSubmitted = localStorage.getItem('leadPopupSubmitted') === 'true';
+    const hasSubmitted = sessionStorage.getItem('leadPopupSubmitted') === 'true';
     
     if (!hasSubmitted) {
       setIsOpen(true);
@@ -31,13 +30,11 @@ export function usePopupTimer(intervalSeconds: number = 20) {
   const closePopup = useCallback(() => {
     setIsOpen(false);
     
-    // Clear existing timer
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
     
-    // Show popup again after specified seconds (only if not submitted)
-    const hasSubmitted = localStorage.getItem('leadPopupSubmitted') === 'true';
+    const hasSubmitted = sessionStorage.getItem('leadPopupSubmitted') === 'true';
     
     if (!hasSubmitted) {
       timerRef.current = setTimeout(() => {
@@ -47,11 +44,9 @@ export function usePopupTimer(intervalSeconds: number = 20) {
   }, [intervalSeconds, showPopup]);
 
   const markAsSubmitted = useCallback(() => {
-    // Mark as permanently submitted - will never show again
-    localStorage.setItem('leadPopupSubmitted', 'true');
+    sessionStorage.setItem('leadPopupSubmitted', 'true');
     setIsOpen(false);
     
-    // Clear any pending timer
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }

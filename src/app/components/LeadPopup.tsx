@@ -112,13 +112,11 @@ export const LeadPopup: React.FC<LeadPopupProps> = ({ isOpen, onClose, onSuccess
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
               {/* Premium Header - Company Theme */}
               <div className="relative bg-gradient-to-r from-purple-600 via-purple-500 to-blue-600 px-6 py-5 overflow-hidden">
-                {/* Animated background pattern */}
                 <div className="absolute inset-0 opacity-10">
                   <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/30 blur-2xl"></div>
                   <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/30 blur-2xl"></div>
                 </div>
                 
-                {/* Sparkle animations */}
                 <motion.div
                   animate={{ y: [0, -5, 0], opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 3, repeat: Infinity }}
