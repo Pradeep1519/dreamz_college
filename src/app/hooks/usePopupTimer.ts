@@ -1,63 +1,61 @@
+// src/app/hooks/usePopupTimer.ts
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-export function usePopupTimer(intervalSeconds: number = 59) {
+export function usePopupTimer(intervalSeconds: number = 20) {
   const [isOpen, setIsOpen] = useState(false);
-  const [hasSubmitted, setHasSubmitted] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const hasShownRef = useRef(false);
 
-  // Load saved state from localStorage
+  // Check if user has already submitted the form (permanent)
   useEffect(() => {
-    const saved = localStorage.getItem('leadPopupSubmitted');
-    if (saved === 'true') {
-      setHasSubmitted(true);
+    const hasSubmitted = localStorage.getItem('leadPopupSubmitted') === 'true';
+    
+    if (!hasSubmitted) {
+      // Show popup after 2 seconds on page load
+      const initialTimer = setTimeout(() => {
+        setIsOpen(true);
+      }, 2000);
+      
+      return () => clearTimeout(initialTimer);
     }
   }, []);
 
   const showPopup = useCallback(() => {
-    // Don't show if user already submitted
-    if (hasSubmitted) return;
-    setIsOpen(true);
-  }, [hasSubmitted]);
+    const hasSubmitted = localStorage.getItem('leadPopupSubmitted') === 'true';
+    
+    if (!hasSubmitted) {
+      setIsOpen(true);
+    }
+  }, []);
 
   const closePopup = useCallback(() => {
     setIsOpen(false);
     
-    // Clear any existing timer
+    // Clear existing timer
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
     
-    // Set next popup after 40 seconds (only if not submitted)
+    // Show popup again after specified seconds (only if not submitted)
+    const hasSubmitted = localStorage.getItem('leadPopupSubmitted') === 'true';
+    
     if (!hasSubmitted) {
       timerRef.current = setTimeout(() => {
         showPopup();
       }, intervalSeconds * 1000);
     }
-  }, [intervalSeconds, hasSubmitted, showPopup]);
+  }, [intervalSeconds, showPopup]);
 
   const markAsSubmitted = useCallback(() => {
-    setHasSubmitted(true);
+    // Mark as permanently submitted - will never show again
     localStorage.setItem('leadPopupSubmitted', 'true');
     setIsOpen(false);
+    
+    // Clear any pending timer
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
   }, []);
-
-  // Initial popup after 2 seconds
-  useEffect(() => {
-    if (hasSubmitted) return;
-    
-    const initialTimer = setTimeout(() => {
-      if (!hasShownRef.current && !hasSubmitted) {
-        hasShownRef.current = true;
-        showPopup();
-      }
-    }, 2000);
-    
-    return () => clearTimeout(initialTimer);
-  }, [showPopup, hasSubmitted]);
 
   return {
     isOpen,

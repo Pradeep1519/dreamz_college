@@ -1,11 +1,14 @@
+// src/app/components/LeadPopup.tsx
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { saveToGoogleSheets } from '../../lib/googleSheets';
+import { X, User, Phone, MapPin, GraduationCap, Send, CheckCircle, Loader2, Sparkles, Crown, Gift } from 'lucide-react';
 
 interface LeadPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;  // New prop for successful submission
+  onSuccess?: () => void;
 }
 
 export const LeadPopup: React.FC<LeadPopupProps> = ({ isOpen, onClose, onSuccess }) => {
@@ -18,15 +21,16 @@ export const LeadPopup: React.FC<LeadPopupProps> = ({ isOpen, onClose, onSuccess
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Updated courses - Same as CoursesSection on Home Page
   const courses = [
     'Select a course',
-    'Engineering',
-    'Medical',
-    'Nursing',
-    'Pharmacy',
-    'Management',
-    'IT & Computer'
+    'Engineering (B.Tech)',
+    'Medical (MBBS/BDS)',
+    'Nursing (B.Sc)',
+    'Pharmacy (B.Pharm)',
+    'Management (BBA/MBA)',
+    'IT & Computer (BCA/MCA)',
+    'Law (BA LLB/LLB)',
+    'Commerce (B.Com/M.Com)'
   ];
 
   const handleMobileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,7 +69,6 @@ export const LeadPopup: React.FC<LeadPopupProps> = ({ isOpen, onClose, onSuccess
       if (saved) {
         setSubmitted(true);
         
-        // Call onSuccess to mark popup as submitted (will never show again)
         if (onSuccess) {
           onSuccess();
         }
@@ -74,7 +77,7 @@ export const LeadPopup: React.FC<LeadPopupProps> = ({ isOpen, onClose, onSuccess
           setFormData({ name: '', mobile: '', location: '', course: '' });
           setSubmitted(false);
           onClose();
-        }, 1500);
+        }, 2000);
       } else {
         alert('Failed to save. Please check your connection and try again.');
       }
@@ -95,7 +98,7 @@ export const LeadPopup: React.FC<LeadPopupProps> = ({ isOpen, onClose, onSuccess
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-50"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
             onClick={onClose}
           />
           
@@ -103,85 +106,136 @@ export const LeadPopup: React.FC<LeadPopupProps> = ({ isOpen, onClose, onSuccess
             initial={{ opacity: 0, scale: 0.9, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 50 }}
-            transition={{ duration: 0.2 }}
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md"
+            transition={{ duration: 0.3, type: "spring", damping: 25 }}
+            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 w-[95%] max-w-md"
           >
-            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-              <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-4">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-bold text-white">
-                    🎓 Get Free Consultation!
-                  </h2>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
+              {/* Premium Header - Company Theme */}
+              <div className="relative bg-gradient-to-r from-purple-600 via-purple-500 to-blue-600 px-6 py-5 overflow-hidden">
+                {/* Animated background pattern */}
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/30 blur-2xl"></div>
+                  <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-white/30 blur-2xl"></div>
+                </div>
+                
+                {/* Sparkle animations */}
+                <motion.div
+                  animate={{ y: [0, -5, 0], opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="absolute top-2 right-12 text-white/30"
+                >
+                  <Sparkles className="w-4 h-4" />
+                </motion.div>
+                <motion.div
+                  animate={{ y: [0, 5, 0], opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 2.5, repeat: Infinity, delay: 1 }}
+                  className="absolute bottom-2 left-10 text-white/30"
+                >
+                  <Sparkles className="w-3 h-3" />
+                </motion.div>
+                
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center shadow-lg">
+                      <Crown className="w-6 h-6 text-yellow-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-white tracking-tight">
+                        Dreamz College
+                      </h2>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-purple-100 text-xs">Learn from achievers</p>
+                        <div className="w-1 h-1 rounded-full bg-purple-300"></div>
+                        <p className="text-purple-100 text-xs">to become one</p>
+                      </div>
+                    </div>
+                  </div>
                   <button
                     onClick={onClose}
-                    className="text-white hover:text-gray-200 transition-colors"
+                    className="text-white/80 hover:text-white transition-colors bg-white/10 hover:bg-white/20 rounded-full p-1.5 backdrop-blur"
                   >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
-                <p className="text-green-100 text-sm mt-1">
-                  Fill the form to get expert guidance
+                
+                <div className="relative mt-3 flex items-center gap-2">
+                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                  <div className="flex items-center gap-1.5">
+                    <Gift className="w-3.5 h-3.5 text-yellow-300" />
+                    <span className="text-[10px] font-semibold text-yellow-200 tracking-wider">FREE CONSULTATION</span>
+                    <Sparkles className="w-3 h-3 text-yellow-300" />
+                  </div>
+                  <div className="flex-1 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                </div>
+                
+                <p className="relative text-purple-100 text-xs mt-2 text-center">
+                  Fill the form to get expert career guidance
                 </p>
               </div>
 
               {!submitted && !isSubmitting ? (
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Full Name *
+                  <div className="group">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                      <User className="w-4 h-4 text-purple-500" />
+                      Full Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                      className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400"
                       placeholder="Enter your full name"
                       required
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Mobile Number * (10 digits)
+                  <div className="group">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-purple-500" />
+                      Mobile Number <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="tel"
-                      value={formData.mobile}
-                      onChange={handleMobileChange}
-                      maxLength={10}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                      placeholder="Enter 10-digit mobile number"
-                      required
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">+91</span>
+                      <input
+                        type="tel"
+                        value={formData.mobile}
+                        onChange={handleMobileChange}
+                        maxLength={10}
+                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        placeholder="9876543210"
+                        required
+                      />
+                    </div>
                     <p className="text-xs text-gray-400 mt-1">
                       {formData.mobile.length}/10 digits
                     </p>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Location / City *
+                  <div className="group">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-purple-500" />
+                      Location / City <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                      placeholder="Enter your city/location"
+                      className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                      placeholder="e.g., Greater Noida, Delhi"
                       required
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Interested Course *
+                  <div className="group">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4 text-purple-500" />
+                      Interested Course <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={formData.course}
                       onChange={(e) => setFormData({ ...formData, course: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                      className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white cursor-pointer"
                       required
                     >
                       {courses.map((course, index) => (
@@ -194,68 +248,92 @@ export const LeadPopup: React.FC<LeadPopupProps> = ({ isOpen, onClose, onSuccess
 
                   <button
                     type="submit"
-                    className="relative w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-lg font-semibold overflow-hidden group transition-all duration-300 hover:shadow-lg hover:from-green-600 hover:to-green-700"
+                    className="relative w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-xl font-semibold overflow-hidden group transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <span className="relative z-10 flex items-center justify-center gap-2">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <Send className="w-4 h-4" />
                       Submit & Get Expert Advice
-                      <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
                     </span>
-                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
                   </button>
 
-                  <p className="text-xs text-gray-500 text-center">
-                    📞 We'll contact you within 24 hours. No spam guaranteed!
+                  <div className="flex items-center justify-center gap-4 pt-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                      <span className="text-[10px] text-gray-400">100% Free</span>
+                    </div>
+                    <div className="w-px h-3 bg-gray-300 dark:bg-gray-700"></div>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle className="w-3 h-3 text-green-500" />
+                      <span className="text-[10px] text-gray-400">Expert Guidance</span>
+                    </div>
+                    <div className="w-px h-3 bg-gray-300 dark:bg-gray-700"></div>
+                    <div className="flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3 text-purple-500" />
+                      <span className="text-[10px] text-gray-400">No Spam</span>
+                    </div>
+                  </div>
+                  
+                  <p className="text-[10px] text-gray-400 text-center">
+                    📞 We'll contact you within 24 hours
                   </p>
                 </form>
               ) : !submitted && isSubmitting ? (
-                <div className="p-8 text-center">
-                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
-                    <div className="relative w-40 h-40 mx-auto">
+                <div className="p-12 text-center">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="space-y-4"
+                  >
+                    <div className="relative w-24 h-24 mx-auto">
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-24 h-20 bg-blue-100 rounded-lg shadow-lg relative">
-                          <div className="absolute top-2 left-2 w-20 h-1 bg-blue-300 rounded"></div>
-                          <div className="absolute top-5 left-2 w-20 h-1 bg-blue-300 rounded"></div>
-                          <div className="absolute top-8 left-2 w-20 h-1 bg-blue-300 rounded"></div>
-                          <div className="absolute bottom-2 left-2 text-xs text-blue-600">📖</div>
+                        <div className="w-16 h-16 bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl shadow-lg flex items-center justify-center">
+                          <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
                         </div>
                       </div>
-                      <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 1.5, repeat: Infinity }} className="absolute top-2 left-2 w-10 h-10 bg-yellow-200 rounded-full flex items-center justify-center shadow-md">
-                        <span className="text-lg">👨‍🎓</span>
+                      <motion.div
+                        animate={{ y: [0, -8, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className="absolute -top-2 -right-2 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center shadow-md"
+                      >
+                        <span className="text-sm">🎓</span>
                       </motion.div>
-                      <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 1.2, repeat: Infinity, delay: 0.3 }} className="absolute bottom-2 right-2 w-10 h-10 bg-green-200 rounded-full flex items-center justify-center shadow-md">
-                        <span className="text-lg">✏️</span>
+                      <motion.div
+                        animate={{ y: [0, -5, 0] }}
+                        transition={{ duration: 1.2, repeat: Infinity, delay: 0.3 }}
+                        className="absolute -bottom-2 -left-2 w-7 h-7 bg-green-400 rounded-full flex items-center justify-center shadow-md"
+                      >
+                        <span className="text-xs">📚</span>
                       </motion.div>
-                      <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1, repeat: Infinity, delay: 0.6 }} className="absolute top-10 right-4 w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center">
-                        <span className="text-sm">💭</span>
-                      </motion.div>
-                      <motion.div animate={{ y: [-5, 5, -5] }} transition={{ duration: 2, repeat: Infinity }} className="absolute -top-2 -right-2 text-yellow-500 text-xl">⭐</motion.div>
-                      <motion.div animate={{ y: [5, -5, 5] }} transition={{ duration: 2.5, repeat: Infinity }} className="absolute -bottom-2 -left-2 text-yellow-500 text-lg">✨</motion.div>
                     </div>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-                      <p className="text-gray-700 font-semibold text-lg">Just a moment...</p>
-                      <p className="text-sm text-gray-500 mt-2">Making your dream career a reality ✨</p>
-                      <div className="flex justify-center space-x-1 mt-3">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                    <div>
+                      <p className="text-gray-800 dark:text-white font-semibold text-lg">Just a moment...</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Connecting you with the best career experts ✨</p>
+                      <div className="flex justify-center space-x-1.5 mt-4">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
                       </div>
-                    </motion.div>
+                    </div>
                   </motion.div>
                 </div>
               ) : (
-                <div className="p-6 text-center">
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200, damping: 10 }} className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+                <div className="p-8 text-center">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                    className="w-20 h-20 bg-gradient-to-r from-green-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+                  >
+                    <CheckCircle className="w-10 h-10 text-green-600" />
                   </motion.div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Thank You! 🎉</h3>
-                  <p className="text-gray-600">Our expert will contact you soon!</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Thank You! 🎉</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Our admission expert will contact you soon!</p>
+                  <div className="mt-4 flex items-center justify-center gap-2 text-xs text-gray-400">
+                    <Sparkles className="w-3 h-3" />
+                    <span>Your journey to success begins now</span>
+                    <Sparkles className="w-3 h-3" />
+                  </div>
                 </div>
               )}
             </div>
