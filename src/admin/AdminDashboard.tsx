@@ -8,7 +8,7 @@ import {
   Shield, LogOut, Menu, X, Home,
   ChevronDown, ChevronRight, Sparkles, Crown,
   TrendingUp, Calendar, CheckCircle, Clock, Eye, XCircle,
-  Tag, UserCog
+  Tag, UserCog, Briefcase
 } from 'lucide-react';
 import { UserManagement } from './components/UserManagement';
 import { CollegeManagement } from './components/CollegeManagement';
@@ -20,10 +20,12 @@ import { Settings as SettingsComponent } from './components/Settings';
 import { Notifications } from './components/Notifications';
 import { OffersManagement } from './components/OffersManagement';
 import { CounselorManagement } from './components/CounselorManagement';
+import { JobManagement } from './components/JobManagement';
+import { JobApplications } from './components/JobApplications';
 import { db } from '../lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
-type TabId = 'overview' | 'users' | 'colleges' | 'courses' | 'analytics' | 'leads' | 'content' | 'settings' | 'notifications' | 'offers' | 'counselors';
+type TabId = 'overview' | 'users' | 'colleges' | 'courses' | 'analytics' | 'leads' | 'content' | 'settings' | 'notifications' | 'offers' | 'counselors' | 'jobs' | 'job-applications';
 
 interface Tab {
   id: TabId;
@@ -41,6 +43,8 @@ const tabs: Tab[] = [
   { id: 'analytics', label: 'Analytics', icon: BarChart3, description: 'Analytics', mobileLabel: 'Stats' },
   { id: 'leads', label: 'Lead Management', icon: Phone, description: 'Student inquiries', mobileLabel: 'Leads' },
   { id: 'counselors', label: 'Counselors', icon: UserCog, description: 'Manage counselors', mobileLabel: 'Counselors' },
+  { id: 'jobs', label: 'Jobs', icon: Briefcase, description: 'Manage job postings', mobileLabel: 'Jobs' },
+  { id: 'job-applications', label: 'Job Applications', icon: FileText, description: 'View job applications', mobileLabel: 'Apps' },
   { id: 'content', label: 'Content', icon: FileText, description: 'Manage content', mobileLabel: 'Content' },
   { id: 'settings', label: 'Settings', icon: Settings, description: 'Settings', mobileLabel: 'Settings' },
   { id: 'notifications', label: 'Notifications', icon: Bell, description: 'Send notifications', mobileLabel: 'Alerts' },
@@ -173,6 +177,10 @@ export function AdminDashboard() {
         return <LeadManagement />;
       case 'counselors':
         return <CounselorManagement />;
+      case 'jobs':
+        return <JobManagement />;
+      case 'job-applications':
+        return <JobApplications />;
       case 'content':
         return <ContentManagement />;
       case 'settings':
@@ -228,7 +236,7 @@ export function AdminDashboard() {
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
               <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Quick Actions</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 sm:gap-3">
                 <button onClick={() => setActiveTab('users')} className="p-3 sm:p-4 bg-purple-50 rounded-lg sm:rounded-xl text-center hover:bg-purple-100 transition-colors">
                   <Users className="w-4 h-4 sm:w-6 sm:h-6 text-purple-600 mx-auto mb-1 sm:mb-2" />
                   <p className="text-xs sm:text-sm font-medium text-gray-700">Users</p>
@@ -244,6 +252,10 @@ export function AdminDashboard() {
                 <button onClick={() => setActiveTab('counselors')} className="p-3 sm:p-4 bg-pink-50 rounded-lg sm:rounded-xl text-center hover:bg-pink-100 transition-colors">
                   <UserCog className="w-4 h-4 sm:w-6 sm:h-6 text-pink-600 mx-auto mb-1 sm:mb-2" />
                   <p className="text-xs sm:text-sm font-medium text-gray-700">Counselors</p>
+                </button>
+                <button onClick={() => setActiveTab('jobs')} className="p-3 sm:p-4 bg-indigo-50 rounded-lg sm:rounded-xl text-center hover:bg-indigo-100 transition-colors">
+                  <Briefcase className="w-4 h-4 sm:w-6 sm:h-6 text-indigo-600 mx-auto mb-1 sm:mb-2" />
+                  <p className="text-xs sm:text-sm font-medium text-gray-700">Jobs</p>
                 </button>
                 <button onClick={() => setActiveTab('offers')} className="p-3 sm:p-4 bg-orange-50 rounded-lg sm:rounded-xl text-center hover:bg-orange-100 transition-colors">
                   <Tag className="w-4 h-4 sm:w-6 sm:h-6 text-orange-600 mx-auto mb-1 sm:mb-2" />
@@ -282,6 +294,7 @@ export function AdminDashboard() {
                   <li className="flex items-start gap-2">💡 <span>Review student applications</span></li>
                   <li className="flex items-start gap-2">💡 <span>Update application statuses</span></li>
                   <li className="flex items-start gap-2">💡 <span>Assign leads to counselors</span></li>
+                  <li className="flex items-start gap-2">💡 <span>Create new job postings</span></li>
                   <li className="flex items-start gap-2">💡 <span>Create special offers for students</span></li>
                 </ul>
               </div>
@@ -296,7 +309,6 @@ export function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Navbar */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-20">
         <div className="px-3 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between">
