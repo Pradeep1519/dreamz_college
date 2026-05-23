@@ -75,6 +75,11 @@ export function JobApplications() {
     return colors[status] || colors.pending;
   };
 
+  // 🔥 Helper: Check if string is a valid URL
+  const isValidUrl = (str: string): boolean => {
+    return str.startsWith('http://') || str.startsWith('https://');
+  };
+
   const filteredApplications = applications.filter(app => {
     const matchesSearch = app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           app.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -207,11 +212,18 @@ export function JobApplications() {
                       <div className="text-xs text-gray-500">{app.phone}</div>
                     </td>
                     <td className="px-4 py-3 text-sm">{app.qualification || 'N/A'}</td>
-                    <td className="px-4 py-3">
+                    {/* 🔥 FIXED: Resume Column */}
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                       {app.resumeUrl ? (
-                        <a href={app.resumeUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-700 flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                          <File className="w-4 h-4" /> View
-                        </a>
+                        isValidUrl(app.resumeUrl) ? (
+                          <a href={app.resumeUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-700 flex items-center gap-1">
+                            <File className="w-4 h-4" /> View
+                          </a>
+                        ) : (
+                          <span className="text-green-600 flex items-center gap-1 text-xs font-medium">
+                            <FileText className="w-4 h-4" /> {app.resumeUrl}
+                          </span>
+                        )
                       ) : (
                         <span className="text-xs text-gray-400">Not uploaded</span>
                       )}
@@ -264,10 +276,27 @@ export function JobApplications() {
                     <div><span className="text-gray-500">Qualification:</span> {selectedApp.qualification || 'Not provided'}</div>
                     <div><span className="text-gray-500">Experience:</span> {selectedApp.experience || 'Not provided'}</div>
                     {selectedApp.portfolio && (
-                      <div><span className="text-gray-500">Portfolio:</span> <a href={selectedApp.portfolio} target="_blank" className="text-purple-600">View</a></div>
+                      <div>
+                        <span className="text-gray-500">Portfolio:</span> 
+                        {isValidUrl(selectedApp.portfolio) ? (
+                          <a href={selectedApp.portfolio} target="_blank" rel="noopener noreferrer" className="text-purple-600 ml-1">View</a>
+                        ) : (
+                          <span className="text-gray-700 ml-1">{selectedApp.portfolio}</span>
+                        )}
+                      </div>
                     )}
+                    {/* 🔥 FIXED: Resume in Modal */}
                     {selectedApp.resumeUrl && (
-                      <div><span className="text-gray-500">Resume:</span> <a href={selectedApp.resumeUrl} target="_blank" className="text-purple-600 flex items-center gap-1">Download <ExternalLink className="w-3 h-3" /></a></div>
+                      <div>
+                        <span className="text-gray-500">Resume:</span> 
+                        {isValidUrl(selectedApp.resumeUrl) ? (
+                          <a href={selectedApp.resumeUrl} target="_blank" rel="noopener noreferrer" className="text-purple-600 flex items-center gap-1 ml-1">
+                            Download <ExternalLink className="w-3 h-3" />
+                          </a>
+                        ) : (
+                          <span className="text-green-600 ml-1 font-medium">{selectedApp.resumeUrl}</span>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

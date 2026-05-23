@@ -7,12 +7,11 @@ import {
   X, Phone, Mail, User, Send, CheckCircle,
   Video, Camera, Headphones, GraduationCap,
   Calendar, Clock, ExternalLink, Search, Filter,
-  FileText, Upload, Loader2, Sparkles
+  FileText, Upload, Loader2, Sparkles, ListChecks, Info
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { collection, getDocs, query, where, doc, setDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../../lib/firebase';
+import { db } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 
 interface Job {
@@ -32,8 +31,102 @@ interface Job {
   createdAt: string;
 }
 
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwei6HSYNEuzHTWHNUV3bWJLsa5o_7BysoDJx2AAslZ2MFRv5-0a1Jjb3ALiBULuLUR/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx5pafwi9PWds5uDyd9J6uJQb_n__MKRi24f_3zFd1dW6o9zDOOkYvp1VOtHTCSkLJopg/exec';
 
+// 🔥 JOB DETAILS MODAL
+const JobDetailsModal = ({ job, isOpen, onClose, onApply }: { job: Job | null; isOpen: boolean; onClose: () => void; onApply: () => void }) => {
+  if (!isOpen || !job) return null;
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto" onClick={onClose}>
+      <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white sticky top-0 z-10 rounded-t-2xl">
+          <button onClick={onClose} className="absolute right-4 top-4 p-1 hover:bg-white/20 rounded-full transition-colors"><X className="w-5 h-5" /></button>
+          <div className="flex items-center gap-3 mb-2">
+            {job.title.includes('Counselor') ? <GraduationCap className="w-8 h-8" /> : job.title.includes('Content') ? <Video className="w-8 h-8" /> : <Briefcase className="w-8 h-8" />}
+            <h2 className="text-2xl font-bold">{job.title}</h2>
+          </div>
+          <p className="text-white/90 text-sm">{job.company}</p>
+          <div className="flex flex-wrap gap-2 mt-2">
+            <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{job.type}</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{job.workType}</span>
+            <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{job.category}</span>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-5">
+          {/* Quick Info */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-blue-50 p-3 rounded-lg text-center">
+              <MapPin className="w-4 h-4 text-blue-600 mx-auto mb-1" />
+              <p className="text-xs text-gray-500">Location</p>
+              <p className="text-sm font-semibold">{job.location}</p>
+            </div>
+            <div className="bg-green-50 p-3 rounded-lg text-center">
+              <Users className="w-4 h-4 text-green-600 mx-auto mb-1" />
+              <p className="text-xs text-gray-500">Openings</p>
+              <p className="text-sm font-semibold">{job.openings}</p>
+            </div>
+            <div className="bg-purple-50 p-3 rounded-lg text-center">
+              <Clock className="w-4 h-4 text-purple-600 mx-auto mb-1" />
+              <p className="text-xs text-gray-500">Experience</p>
+              <p className="text-sm font-semibold">{job.experience || 'Freshers'}</p>
+            </div>
+            <div className="bg-orange-50 p-3 rounded-lg text-center">
+              <Award className="w-4 h-4 text-orange-600 mx-auto mb-1" />
+              <p className="text-xs text-gray-500">Work Type</p>
+              <p className="text-sm font-semibold">{job.workType}</p>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-3">
+              <Info className="w-5 h-5 text-blue-600" /> Job Description
+            </h3>
+            <p className="text-gray-700 leading-relaxed whitespace-pre-line">{job.description}</p>
+          </div>
+
+          {/* Requirements */}
+          {job.requirements && job.requirements.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-3">
+                <ListChecks className="w-5 h-5 text-green-600" /> Requirements
+              </h3>
+              <ul className="space-y-2">
+                {job.requirements.map((req, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-gray-700">
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>{req}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Resume Info */}
+          {job.requireResume && (
+            <div className="bg-purple-50 p-4 rounded-lg flex items-center gap-3">
+              <FileText className="w-5 h-5 text-purple-600" />
+              <p className="text-sm text-purple-700">Resume/CV is required for this position</p>
+            </div>
+          )}
+
+          {/* Apply Button */}
+          <button 
+            onClick={() => { onClose(); onApply(); }} 
+            className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+          >
+            <Send className="w-4 h-4" /> Apply Now
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// 🔥 JOB APPLICATION MODAL (Same as before)
 const JobApplicationModal = ({ job, isOpen, onClose }: { job: Job | null; isOpen: boolean; onClose: () => void }) => {
   const { user, userData } = useAuth();
   const [formData, setFormData] = useState({
@@ -54,12 +147,22 @@ const JobApplicationModal = ({ job, isOpen, onClose }: { job: Job | null; isOpen
 
   useEffect(() => {
     if (user && userData) {
-      setFormData(prev => ({
-        ...prev,
+      let cleanPhone = '';
+      if (userData.phone) {
+        cleanPhone = String(userData.phone).replace(/\D/g, '').slice(-10);
+      } else if (user.phoneNumber) {
+        cleanPhone = String(user.phoneNumber).replace(/\D/g, '').slice(-10);
+      }
+      
+      setFormData({
         name: userData.name || user.displayName || '',
         email: userData.email || user.email || '',
-        phone: userData.phone || user.phoneNumber || ''
-      }));
+        phone: cleanPhone,
+        experience: '',
+        qualification: '',
+        portfolio: '',
+        message: ''
+      });
     }
   }, [user, userData]);
 
@@ -87,7 +190,17 @@ const JobApplicationModal = ({ job, isOpen, onClose }: { job: Job | null; isOpen
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (file.type === 'application/pdf' || file.type.includes('word') || file.type.includes('document')) {
+      
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, resume: 'File size should be less than 5MB' }));
+        return;
+      }
+      
+      if (file.type === 'application/pdf' || 
+          file.type.includes('word') || 
+          file.type.includes('document') ||
+          file.name.endsWith('.doc') ||
+          file.name.endsWith('.docx')) {
         setResumeFile(file);
         setErrors(prev => ({ ...prev, resume: '' }));
       } else {
@@ -96,77 +209,75 @@ const JobApplicationModal = ({ job, isOpen, onClose }: { job: Job | null; isOpen
     }
   };
 
-  const uploadResume = async (): Promise<string> => {
-    if (!resumeFile) return '';
-    const storageRef = ref(storage, `job_resumes/${job?.id}/${Date.now()}_${resumeFile.name}`);
-    await uploadBytes(storageRef, resumeFile);
-    return await getDownloadURL(storageRef);
-  };
-
-  const submitToGoogleSheets = async () => {
+  const submitToGoogleSheets = async (): Promise<string> => {
     try {
-      const formDataToSend = new FormData();
-      formDataToSend.append('name', formData.name);
-      formDataToSend.append('phone', formData.phone);
-      formDataToSend.append('email', formData.email);
-      formDataToSend.append('job_title', job?.title || '');
-      formDataToSend.append('job_id', job?.id || '');
-      formDataToSend.append('company', job?.company || '');
-      formDataToSend.append('experience', formData.experience);
-      formDataToSend.append('qualification', formData.qualification);
-      formDataToSend.append('portfolio', formData.portfolio);
-      formDataToSend.append('message', formData.message || 'No message');
-      formDataToSend.append('timestamp', new Date().toISOString());
-      formDataToSend.append('source', 'Career Page - Job Application');
-      await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formDataToSend, mode: 'no-cors' });
-      return true;
-    } catch (error) { return false; }
-  };
-
-  const sendToWhatsApp = () => {
-    const message = `📋 *New Job Application - Dreamz College*
-    
-🎯 *Position:* ${job?.title}
-📍 *Location:* ${job?.location}
-🏢 *Work Type:* ${job?.workType}
-
-👤 *Applicant Name:* ${formData.name}
-📞 *Phone:* ${formData.phone}
-📧 *Email:* ${formData.email}
-🎓 *Qualification:* ${formData.qualification || 'Not provided'}
-💼 *Experience:* ${formData.experience || 'Not provided'}
-🔗 *Portfolio:* ${formData.portfolio || 'Not provided'}
-💬 *Message:* ${formData.message || 'No message'}
-⏰ *Applied on:* ${new Date().toLocaleString()}`;
-    window.open(`https://wa.me/918796033021?text=${encodeURIComponent(message)}`, '_blank');
-  };
-
-  const submitApplication = async () => {
-    try {
-      let resumeUrl = '';
+      let fileData = null;
+      
       if (resumeFile) {
-        resumeUrl = await uploadResume();
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve) => {
+          reader.onload = () => resolve(reader.result as string);
+        });
+        reader.readAsDataURL(resumeFile);
+        const base64Data = await base64Promise;
+        
+        fileData = {
+          fileName: resumeFile.name,
+          fileType: resumeFile.type || 'application/pdf',
+          fileSize: resumeFile.size,
+          base64: base64Data.split(',')[1]
+        };
       }
       
+      const payload = {
+        name: formData.name,
+        phone: `+91${formData.phone}`,
+        email: formData.email,
+        job_title: job?.title || '',
+        experience: formData.experience,
+        qualification: formData.qualification,
+        message: formData.message || 'No message',
+        timestamp: new Date().toISOString(),
+        fileData: fileData
+      };
+      
+      await fetch(GOOGLE_SCRIPT_URL, { 
+        method: 'POST', 
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' },
+        mode: 'no-cors'
+      });
+      
+      console.log('✅ Data sent to Google Sheets');
+      return fileData ? fileData.fileName : '';
+    } catch (error) {
+      console.error('❌ Google Sheets error:', error);
+      return '';
+    }
+  };
+
+  const submitToFirestore = async (resumeFileName: string): Promise<boolean> => {
+    try {
       const readableId = `${formData.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${Date.now().toString().slice(-6)}`;
       const applicationRef = doc(db, 'job_applications', readableId);
       await setDoc(applicationRef, {
         jobId: job!.id,
         jobTitle: job!.title,
         name: formData.name,
-        phone: formData.phone,
+        phone: `+91${formData.phone}`,
         email: formData.email,
         qualification: formData.qualification,
         experience: formData.experience,
         portfolio: formData.portfolio,
         message: formData.message,
-        resumeUrl,
+        resumeUrl: resumeFileName,
         status: 'pending',
         appliedAt: new Date().toISOString()
       });
+      console.log('✅ Data saved to Firestore');
       return true;
     } catch (error) {
-      console.error('Error saving application:', error);
+      console.error('❌ Firestore error:', error);
       return false;
     }
   };
@@ -177,9 +288,9 @@ const JobApplicationModal = ({ job, isOpen, onClose }: { job: Job | null; isOpen
     setIsSubmitting(true);
     setUploading(true);
     try {
-      await submitApplication();
-      sendToWhatsApp();
-      await submitToGoogleSheets();
+      const resumeFileName = await submitToGoogleSheets();
+      await submitToFirestore(resumeFileName);
+      
       setIsSuccess(true);
       setTimeout(() => {
         setIsSuccess(false);
@@ -199,7 +310,7 @@ const JobApplicationModal = ({ job, isOpen, onClose }: { job: Job | null; isOpen
   if (!isOpen || !job) return null;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto" onClick={onClose}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto" onClick={onClose}>
       <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
           <button onClick={onClose} className="absolute right-4 top-4 p-1 hover:bg-white/20 rounded-full transition-colors"><X className="w-5 h-5" /></button>
@@ -223,22 +334,38 @@ const JobApplicationModal = ({ job, isOpen, onClose }: { job: Job | null; isOpen
               <p><span className="font-semibold">Openings:</span> {job.openings}</p>
             </div>
             
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Full Name <span className="text-red-500">*</span></label>
-              <div className="relative"><User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" /><input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={`w-full pl-9 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.name ? 'border-red-500' : 'border-gray-300'}`} placeholder="Enter your full name" /></div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={`w-full pl-9 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.name ? 'border-red-500' : 'border-gray-300'}`} placeholder="Enter your full name" />
+              </div>
               {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
             </div>
             
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Phone Number <span className="text-red-500">*</span></label>
-              <div className="relative"><Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" /><input type="tel" required value={formData.phone} onChange={handlePhoneChange} className={`w-full pl-9 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.phone ? 'border-red-500' : 'border-gray-300'}`} placeholder="10-digit mobile number" maxLength={10} /></div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 z-10">
+                  <span className="text-gray-700 font-semibold text-sm">+91</span>
+                  <span className="text-gray-300">|</span>
+                </div>
+                <input type="tel" required value={formData.phone} onChange={handlePhoneChange} className={`w-full pl-16 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.phone ? 'border-red-500' : 'border-gray-300'}`} placeholder="10-digit mobile number" maxLength={10} />
+              </div>
               {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
             </div>
             
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Email Address <span className="text-red-500">*</span></label>
-              <div className="relative"><Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" /><input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className={`w-full pl-9 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.email ? 'border-red-500' : 'border-gray-300'}`} placeholder="your@email.com" /></div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email Address <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className={`w-full pl-9 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.email ? 'border-red-500' : 'border-gray-300'}`} placeholder="your@email.com" />
+              </div>
               {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
             
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Highest Qualification</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Highest Qualification</label>
               <select value={formData.qualification} onChange={(e) => setFormData({ ...formData, qualification: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Select qualification</option>
                 <option value="12th Pass">12th Pass</option>
@@ -252,7 +379,8 @@ const JobApplicationModal = ({ job, isOpen, onClose }: { job: Job | null; isOpen
               </select>
             </div>
             
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Years of Experience</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Years of Experience</label>
               <select value={formData.experience} onChange={(e) => setFormData({ ...formData, experience: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Select experience</option>
                 <option value="Fresher">Fresher (No experience)</option>
@@ -264,31 +392,17 @@ const JobApplicationModal = ({ job, isOpen, onClose }: { job: Job | null; isOpen
               </select>
             </div>
             
-            {job.title.includes('Content Creator') && (
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Portfolio / Social Media Handle (Optional)</label>
-                <div className="relative"><Camera className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" /><input type="text" value={formData.portfolio} onChange={(e) => setFormData({ ...formData, portfolio: e.target.value })} className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Instagram handle or portfolio link" /></div>
-              </div>
-            )}
-            
-            {/* 🔥 NEW: Resume Upload Section */}
             {job.requireResume && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Resume/CV <span className="text-red-500">*</span></label>
                 <div className={`border-2 border-dashed rounded-lg p-4 text-center transition-all ${errors.resume ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-purple-400'}`}>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    accept=".pdf,.doc,.docx"
-                    className="hidden"
-                    id="resume-upload"
-                  />
+                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".pdf,.doc,.docx" className="hidden" id="resume-upload" />
                   <label htmlFor="resume-upload" className="cursor-pointer flex flex-col items-center gap-2">
                     {resumeFile ? (
                       <>
                         <FileText className="w-10 h-10 text-green-600" />
                         <p className="text-sm font-medium text-gray-700">{resumeFile.name}</p>
-                        <p className="text-xs text-gray-500">Click to change file</p>
+                        <p className="text-xs text-gray-500">Click to change file ({(resumeFile.size / 1024 / 1024).toFixed(1)}MB)</p>
                       </>
                     ) : (
                       <>
@@ -303,12 +417,13 @@ const JobApplicationModal = ({ job, isOpen, onClose }: { job: Job | null; isOpen
               </div>
             )}
             
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Why should we hire you? (Optional)</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Why should we hire you? (Optional)</label>
               <textarea value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tell us about your skills and experience..." />
             </div>
             
             <button type="submit" disabled={isSubmitting || uploading} className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-              {isSubmitting || uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> {uploading ? 'Uploading...' : 'Submitting...'}</> : <><Send className="w-4 h-4" /> Submit Application</>}
+              {isSubmitting || uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</> : <><Send className="w-4 h-4" /> Submit Application</>}
             </button>
             <p className="text-center text-xs text-gray-400">Your data is safe with us. We'll never share your information.</p>
           </form>
@@ -318,6 +433,7 @@ const JobApplicationModal = ({ job, isOpen, onClose }: { job: Job | null; isOpen
   );
 };
 
+// 🔥 MAIN CAREER PAGE
 export function CareerPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -325,7 +441,8 @@ export function CareerPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedWorkType, setSelectedWorkType] = useState<string>('All');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const categories = ['All', 'Counseling', 'Creative', 'Sales', 'Other', 'Engineering', 'Medical', 'Nursing', 'Pharmacy', 'Management', 'IT & Computer', 'Law', 'Commerce', 'Education', 'Marketing', 'HR', 'Finance'];
   const workTypes = ['All', 'On-site', 'Remote', 'Hybrid'];
@@ -364,6 +481,16 @@ export function CareerPage() {
     if (title.includes('Content')) return <Video className="w-12 h-12 text-purple-500" />;
     if (title.includes('Telecaller')) return <Headphones className="w-12 h-12 text-green-500" />;
     return <Briefcase className="w-12 h-12 text-gray-500" />;
+  };
+
+  const handleViewDetails = (job: Job) => {
+    setSelectedJob(job);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleApplyFromDetails = () => {
+    setIsDetailsModalOpen(false);
+    setIsApplyModalOpen(true);
   };
 
   if (loading) {
@@ -415,7 +542,22 @@ export function CareerPage() {
                     {job.requireResume && <div className="flex items-center gap-2 text-xs text-purple-600 justify-center"><FileText className="w-3 h-3" /> Resume Required</div>}
                   </div>
                   <div className="border-t border-gray-100 pt-3 mb-3"><p className="text-xs text-gray-500 text-center">{job.experience || 'Freshers can apply'}</p></div>
-                  <button onClick={() => { setSelectedJob(job); setIsModalOpen(true); }} className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">Apply Now <ExternalLink className="w-3 h-3" /></button>
+                  
+                  {/* 🔥 TWO BUTTONS: View Details + Apply Now */}
+                  <div className="space-y-2">
+                    <button 
+                      onClick={() => handleViewDetails(job)} 
+                      className="w-full py-2.5 bg-white border-2 border-purple-600 text-purple-600 rounded-lg font-medium text-sm hover:bg-purple-50 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Info className="w-4 h-4" /> View Details
+                    </button>
+                    <button 
+                      onClick={() => { setSelectedJob(job); setIsApplyModalOpen(true); }} 
+                      className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                    >
+                      Apply Now <ExternalLink className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -431,7 +573,28 @@ export function CareerPage() {
           </div>
         </div>
 
-        <AnimatePresence>{isModalOpen && (<JobApplicationModal job={selectedJob} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />)}</AnimatePresence>
+        {/* 🔥 JOB DETAILS MODAL */}
+        <AnimatePresence>
+          {isDetailsModalOpen && (
+            <JobDetailsModal 
+              job={selectedJob} 
+              isOpen={isDetailsModalOpen} 
+              onClose={() => setIsDetailsModalOpen(false)} 
+              onApply={handleApplyFromDetails} 
+            />
+          )}
+        </AnimatePresence>
+
+        {/* 🔥 JOB APPLICATION MODAL */}
+        <AnimatePresence>
+          {isApplyModalOpen && (
+            <JobApplicationModal 
+              job={selectedJob} 
+              isOpen={isApplyModalOpen} 
+              onClose={() => setIsApplyModalOpen(false)} 
+            />
+          )}
+        </AnimatePresence>
       </div>
     </>
   );
